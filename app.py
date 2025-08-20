@@ -25,12 +25,20 @@ app.secret_key = os.environ.get("SESSION_SECRET", "civil-ai-default-secret-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    # Fallback to SQLite for local development or when DATABASE_URL is not set
+    database_url = "sqlite:///civilbot.db"
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+
+# Only set PostgreSQL-specific options if using PostgreSQL
+if database_url.startswith("postgresql://") or database_url.startswith("postgres://"):
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
 
 # Initialize extensions
 db.init_app(app)
