@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Site Safety - CivilAI Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row py-4">
+        <div class="col-12">
+            <h2>
+                <i class="fas fa-shield-alt text-danger me-2"></i>
+                Site Safety Analysis
+            </h2>
+            <p class="lead">Upload site images for AI-powered safety compliance analysis and risk assessment.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <!-- Upload Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-camera me-2"></i>
+                        Upload Site Image
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="safetyForm">
+                        <div class="mb-3">
+                            <label for="safety_image" class="form-label">
+                                <i class="fas fa-image me-1"></i>
+                                Select Image File
+                            </label>
+                            <input type="file" name="safety_image" id="safety_image" 
+                                   class="form-control" accept="image/*" required>
+                            <div class="form-text">
+                                Supported formats: PNG, JPG, JPEG, GIF, BMP (Max 16MB)
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div id="imagePreview" class="text-center" style="display: none;">
+                                <img id="previewImg" src="" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100" id="analyzeBtn">
+                            <i class="fas fa-search me-2"></i>
+                            Analyze Safety
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Safety Guidelines -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        Safety Checklist
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-primary">Personal Protective Equipment (PPE)</h6>
+                            <ul class="list-unstyled mb-3">
+                                <li><i class="fas fa-check-circle text-success me-2"></i>Hard hats/Safety helmets</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i>Safety glasses/goggles</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i>High-visibility vests</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i>Safety boots with toe protection</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i>Gloves appropriate to task</li>
+                            </ul>
+
+                            <h6 class="text-warning">Site Organization</h6>
+                            <ul class="list-unstyled mb-3">
+                                <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Clear walkways and exits</li>
+                                <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Proper material storage</li>
+                                <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Adequate lighting</li>
+                                <li><i class="fas fa-exclamation-triangle text-warning me-2"></i>Warning signs and barriers</li>
+                            </ul>
+
+                            <h6 class="text-danger">High-Risk Areas</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-times-circle text-danger me-2"></i>Open excavations</li>
+                                <li><i class="fas fa-times-circle text-danger me-2"></i>Working at height</li>
+                                <li><i class="fas fa-times-circle text-danger me-2"></i>Electrical hazards</li>
+                                <li><i class="fas fa-times-circle text-danger me-2"></i>Moving machinery</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            {% if analysis %}
+            <!-- Analysis Results -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-brain me-2"></i>
+                        AI Safety Analysis Report
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="analysis-content">
+                        {{ analysis|nl2br }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Items -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        Recommended Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Next Steps
+                        </h6>
+                        <ul class="mb-0">
+                            <li>Review the AI analysis findings above</li>
+                            <li>Address any immediate safety concerns</li>
+                            <li>Implement recommended safety measures</li>
+                            <li>Conduct regular safety inspections</li>
+                            <li>Train workers on safety protocols</li>
+                            <li>Document corrective actions taken</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Important Note
+                        </h6>
+                        <p class="mb-0">
+                            This AI analysis is for guidance only and does not replace professional safety inspections. 
+                            Always consult with qualified safety professionals and follow local safety regulations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Instructions Card -->
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-shield-alt fa-4x text-muted mb-4"></i>
+                    <h4>AI-Powered Safety Analysis</h4>
+                    <p class="text-muted mb-4">
+                        Upload a construction site image to get comprehensive safety analysis and recommendations.
+                    </p>
+                    <div class="row text-start">
+                        <div class="col-12">
+                            <h6><i class="fas fa-search text-primary me-2"></i>What the AI Analyzes:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li>• Personal Protective Equipment usage</li>
+                                        <li>• Safety hazards and risks</li>
+                                        <li>• Equipment and machinery safety</li>
+                                        <li>• Site organization and housekeeping</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li>• Structural safety concerns</li>
+                                        <li>• Fall protection measures</li>
+                                        <li>• Emergency access routes</li>
+                                        <li>• Compliance with safety standards</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6><i class="fas fa-camera text-success me-2"></i>Best Photo Practices:</h6>
+                                <ul class="list-unstyled">
+                                    <li>• Take clear, well-lit images</li>
+                                    <li>• Include workers and equipment</li>
+                                    <li>• Capture different angles of work areas</li>
+                                    <li>• Focus on areas of concern</li>
+                                    <li>• Avoid blurry or dark images</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Analysis -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        Sample Analysis Output
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="sample-analysis text-muted">
+                        <h6>Safety Assessment Report:</h6>
+                        <p><strong>PPE Compliance:</strong> Workers observed wearing hard hats and high-visibility vests. However, safety glasses not visible on all personnel.</p>
+                        <p><strong>Hazard Identification:</strong> Open excavation area without proper barriers. Potential fall hazard identified.</p>
+                        <p><strong>Recommendations:</strong></p>
+                        <ul>
+                            <li>Install safety barriers around excavation</li>
+                            <li>Ensure all workers wear complete PPE</li>
+                            <li>Provide safety briefing on excavation safety</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Image preview functionality
+document.getElementById('safety_image').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+// Form submission handling
+document.getElementById('safetyForm').addEventListener('submit', function(event) {
+    const fileInput = document.getElementById('safety_image');
+    const submitBtn = document.getElementById('analyzeBtn');
+
+    if (fileInput.files.length === 0) {
+        event.preventDefault();
+        alert('Please select an image file to analyze.');
+        return;
+    }
+
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+    submitBtn.disabled = true;
+});
+
+// File size validation
+document.getElementById('safety_image').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file && file.size > 16 * 1024 * 1024) { // 16MB
+        alert('File size too large. Please select an image under 16MB.');
+        this.value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,188 @@
+/* Custom styles for CivilAI Assistant */
+
+/* Chat interface styles */
+.chat-container {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+}
+
+.ai-response {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Gantt chart styles */
+.gantt-container {
+    min-height: 300px;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+.task-bar {
+    background: linear-gradient(45deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timeline {
+    background: var(--bs-gray-100);
+    border-radius: 2px;
+}
+
+/* Form enhancements */
+.task-input .input-group {
+    margin-bottom: 0.5rem;
+}
+
+.task-input input[type="text"] {
+    flex: 2;
+}
+
+.task-input input[type="number"] {
+    flex: 0 0 80px;
+}
+
+/* Card hover effects */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Feature cards on homepage */
+.card h-100 {
+    transition: all 0.3s ease;
+}
+
+.card h-100:hover {
+    transform: scale(1.02);
+}
+
+/* Analysis content formatting */
+.analysis-content {
+    font-family: var(--bs-font-monospace);
+    white-space: pre-wrap;
+    background: var(--bs-gray-100);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.sample-analysis {
+    background: var(--bs-gray-50);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border-left: 3px solid var(--bs-secondary);
+}
+
+/* Image preview styles */
+#imagePreview {
+    background: var(--bs-light);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border: 2px dashed var(--bs-border-color);
+}
+
+#previewImg {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.375rem;
+}
+
+/* Navigation active state */
+.navbar-nav .nav-link.active {
+    background: var(--bs-primary);
+    border-radius: 0.375rem;
+    color: white !important;
+}
+
+/* Result cards styling */
+.card.bg-primary h6,
+.card.bg-success h6,
+.card.bg-info h6,
+.card.bg-warning h6,
+.card.bg-danger h6 {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .gantt-container {
+        overflow-x: auto;
+    }
+    
+    .task-name {
+        min-width: 150px !important;
+        max-width: 150px !important;
+        font-size: 0.875rem;
+    }
+    
+    .timeline {
+        min-width: 300px;
+    }
+}
+
+/* Loading states */
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* Custom alerts */
+.alert-heading {
+    color: inherit;
+    font-weight: 600;
+}
+
+/* Footer styles */
+footer {
+    margin-top: auto;
+}
+
+/* Utility classes */
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.bg-primary-dark {
+    background-color: #0056b3 !important;
+}
+
+/* Animation classes */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Table improvements */
+.table-responsive {
+    border-radius: 0.375rem;
+    border: 1px solid var(--bs-border-color);
+}
+
+.table th {
+    background: var(--bs-light);
+    border-color: var(--bs-border-color);
+    font-weight: 600;
+}
+
+/* Custom progress bars */
+.progress {
+    height: 1.5rem;
+    background: var(--bs-light);
+    border-radius: 0.75rem;
+}
+
+.progress-bar {
+    background: linear-gradient(45deg, var(--bs-success), var(--bs-success-dark, #0f5132));
+    border-radius: 0.75rem;
+}
