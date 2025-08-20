@@ -7,6 +7,16 @@
     <!-- Hero Section -->
     <div class="row py-5">
         <div class="col-lg-8 mx-auto text-center">
+            {% if current_user.is_authenticated %}
+            <h1 class="display-4 mb-4">
+                <i class="fas fa-hard-hat text-primary me-3"></i>
+                Welcome back, {{ current_user.username }}!
+            </h1>
+            <p class="lead mb-4">
+                Ready to continue your civil engineering projects? Access all tools and AI assistance 
+                to help you make informed engineering decisions.
+            </p>
+            {% else %}
             <h1 class="display-4 mb-4">
                 <i class="fas fa-hard-hat text-primary me-3"></i>
                 Welcome to CivilAI Assistant
@@ -15,12 +25,22 @@
                 Your intelligent companion for civil engineering design, estimation, and site safety. 
                 Powered by advanced AI to help you make informed engineering decisions.
             </p>
+            {% endif %}
+            {% if current_user.is_authenticated %}
             <a href="{{ url_for('chat') }}" class="btn btn-primary btn-lg me-3">
                 <i class="fas fa-comments me-2"></i>Start AI Chat
             </a>
             <a href="{{ url_for('calculator') }}" class="btn btn-outline-secondary btn-lg">
                 <i class="fas fa-calculator me-2"></i>Try Calculator
             </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-sign-in-alt me-2"></i>Login to Start
+            </a>
+            <a href="{{ url_for('register') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Register
+            </a>
+            {% endif %}
         </div>
     </div>
 

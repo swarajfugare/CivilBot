@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Unit Converter - CivilBot{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h3><i class="fas fa-exchange-alt"></i> Unit Converter</h3>
+                    <p class="mb-0">Convert between common engineering units</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.conversion_type.label(class="form-label") }}
+                                {{ form.conversion_type(class="form-control", id="conversionType") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.value.label(class="form-label") }}
+                                {{ form.value(class="form-control", step="any") }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.from_unit.label(class="form-label") }}
+                                {{ form.from_unit(class="form-control", id="fromUnit") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.to_unit.label(class="form-label") }}
+                                {{ form.to_unit(class="form-control", id="toUnit") }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-warning btn-lg") }}
+                        </div>
+                    </form>
+                    
+                    {% if result and not result.get('error') %}
+                    <div class="mt-4 p-3 bg-light border rounded">
+                        <h4 class="text-success">Conversion Result</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>From:</strong> {{ result.original_value }} {{ result.from_unit }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>To:</strong> {{ result.result_value }} {{ result.to_unit }}
+                            </div>
+                        </div>
+                        <small class="text-muted">Conversion Type: {{ result.conversion_type.title() }}</small>
+                    </div>
+                    {% elif result and result.get('error') %}
+                    <div class="alert alert-danger mt-3">
+                        <strong>Error:</strong> {{ result.error }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Common Conversions</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Length:</strong></li>
+                        <li>• 1 meter = 3.28 feet</li>
+                        <li>• 1 foot = 0.305 meters</li>
+                        <br>
+                        <li><strong>Weight:</strong></li>
+                        <li>• 1 kg = 2.20 lbs</li>
+                        <li>• 1 ton = 1000 kg</li>
+                        <br>
+                        <li><strong>Area:</strong></li>
+                        <li>• 1 sq.m = 10.76 sq.ft</li>
+                        <li>• 1 acre = 4047 sq.m</li>
+                        <br>
+                        <li><strong>Pressure:</strong></li>
+                        <li>• 1 N/mm² = 145 PSI</li>
+                        <li>• 1 MPa = 1 N/mm²</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('conversionType').addEventListener('change', function() {
+    const conversionType = this.value;
+    const fromUnit = document.getElementById('fromUnit');
+    const toUnit = document.getElementById('toUnit');
+    
+    // Clear existing options
+    fromUnit.innerHTML = '';
+    toUnit.innerHTML = '';
+    
+    let options = [];
+    
+    switch(conversionType) {
+        case 'length':
+            options = [
+                ['m', 'Meters'],
+                ['ft', 'Feet'],
+                ['mm', 'Millimeters'],
+                ['cm', 'Centimeters'],
+                ['km', 'Kilometers']
+            ];
+            break;
+        case 'weight':
+            options = [
+                ['kg', 'Kilograms'],
+                ['ton', 'Tons'],
+                ['g', 'Grams'],
+                ['lb', 'Pounds']
+            ];
+            break;
+        case 'area':
+            options = [
+                ['sqm', 'Square Meters'],
+                ['sqft', 'Square Feet'],
+                ['acre', 'Acres'],
+                ['hectare', 'Hectares']
+            ];
+            break;
+        case 'volume':
+            options = [
+                ['cum', 'Cubic Meters'],
+                ['cuft', 'Cubic Feet'],
+                ['liter', 'Liters']
+            ];
+            break;
+        case 'pressure':
+            options = [
+                ['nmm2', 'N/mm²'],
+                ['psi', 'PSI'],
+                ['mpa', 'MPa'],
+                ['bar', 'Bar']
+            ];
+            break;
+    }
+    
+    // Add options to both selects
+    options.forEach(function(option) {
+        fromUnit.innerHTML += `<option value="${option[0]}">${option[1]}</option>`;
+        toUnit.innerHTML += `<option value="${option[0]}">${option[1]}</option>`;
+    });
+});
+
+// Trigger the change event on page load
+document.getElementById('conversionType').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

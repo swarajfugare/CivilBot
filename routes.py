@@ -1,11 +1,14 @@
 import os
 import logging
 from flask import render_template, request, jsonify, session, flash, redirect, url_for
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import base64
-from app import app
+from app import app, db
 from civil_ai import CivilAI
 from calculators import StructuralCalculator, MaterialEstimator, ProjectScheduler
+from models import User, ChatHistory
+from forms import LoginForm, RegistrationForm, UnitConverterForm, MaterialEstimatorForm
 
 # Initialize the AI assistant
 civil_ai = CivilAI()
@@ -22,51 +25,102 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Authentication routes
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """User login"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            flash(f'Welcome back, {user.username}!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        flash('Invalid username or password.', 'error')
+    return render_template('login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """User registration"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration successful! You can now log in.', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    """User logout"""
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
+
 @app.route('/')
 def index():
     """Home page with introduction and features overview"""
     return render_template('index.html')
 
 @app.route('/chat')
+@login_required
 def chat():
     """AI Chat Assistant page"""
-    # Initialize chat history in session if not exists
-    if 'chat_history' not in session:
-        session['chat_history'] = []
-    return render_template('chat.html', chat_history=session['chat_history'])
+    # Get chat history from database for current user
+    chat_history = ChatHistory.query.filter_by(user_id=current_user.id).order_by(ChatHistory.created_at).limit(20).all()
+    return render_template('chat.html', chat_history=chat_history)
 
-@app.route('/chat', methods=['POST'])
-def chat_post():
-    """Handle AI chat queries"""
+# AJAX endpoints for dynamic chat
+@app.route('/api/chat', methods=['POST'])
+@login_required
+def api_chat():
+    """AJAX endpoint for chat messages"""
     try:
-        user_message = request.form.get('message', '').strip()
+        data = request.get_json()
+        user_message = data.get('message', '').strip()
+        
         if not user_message:
-            flash('Please enter a message', 'warning')
-            return redirect(url_for('chat'))
+            return jsonify({'error': 'Please enter a message'}), 400
         
         # Get AI response
         ai_response = civil_ai.get_civil_engineering_response(user_message)
         
-        # Store in session
-        if 'chat_history' not in session:
-            session['chat_history'] = []
+        # Store in database
+        chat_record = ChatHistory(
+            user_id=current_user.id,
+            user_message=user_message,
+            bot_response=ai_response
+        )
+        db.session.add(chat_record)
+        db.session.commit()
         
-        session['chat_history'].append({
-            'user': user_message,
-            'ai': ai_response
+        # Keep only last 50 conversations per user
+        total_chats = ChatHistory.query.filter_by(user_id=current_user.id).count()
+        if total_chats > 50:
+            old_chats = ChatHistory.query.filter_by(user_id=current_user.id).order_by(ChatHistory.created_at).limit(total_chats - 50).all()
+            for chat in old_chats:
+                db.session.delete(chat)
+            db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'ai_response': ai_response,
+            'user_message': user_message
         })
         
-        # Keep only last 10 conversations
-        if len(session['chat_history']) > 10:
-            session['chat_history'] = session['chat_history'][-10:]
-        
-        session.modified = True
-        
     except Exception as e:
-        logging.error(f"Chat error: {str(e)}")
-        flash(f'Error getting AI response: {str(e)}', 'error')
-    
-    return redirect(url_for('chat'))
+        logging.error(f"AJAX Chat error: {str(e)}")
+        return jsonify({'error': f'Error getting AI response: {str(e)}'}), 500
 
 @app.route('/calculator')
 def calculator():
@@ -230,50 +284,13 @@ def about():
     return render_template('about.html')
 
 @app.route('/clear-chat')
+@login_required
 def clear_chat():
-    """Clear chat history"""
-    session.pop('chat_history', None)
+    """Clear chat history for current user"""
+    ChatHistory.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
     flash('Chat history cleared', 'info')
     return redirect(url_for('chat'))
-
-# AJAX endpoints for dynamic chat
-@app.route('/api/chat', methods=['POST'])
-def api_chat():
-    """AJAX endpoint for chat messages"""
-    try:
-        data = request.get_json()
-        user_message = data.get('message', '').strip()
-        
-        if not user_message:
-            return jsonify({'error': 'Please enter a message'}), 400
-        
-        # Get AI response
-        ai_response = civil_ai.get_civil_engineering_response(user_message)
-        
-        # Store in session
-        if 'chat_history' not in session:
-            session['chat_history'] = []
-        
-        session['chat_history'].append({
-            'user': user_message,
-            'ai': ai_response
-        })
-        
-        # Keep only last 10 conversations
-        if len(session['chat_history']) > 10:
-            session['chat_history'] = session['chat_history'][-10:]
-        
-        session.modified = True
-        
-        return jsonify({
-            'success': True,
-            'ai_response': ai_response,
-            'user_message': user_message
-        })
-        
-    except Exception as e:
-        logging.error(f"AJAX Chat error: {str(e)}")
-        return jsonify({'error': f'Error getting AI response: {str(e)}'}), 500
 
 # Unit conversion helper functions
 def meters_to_feet(meters):
@@ -376,9 +393,284 @@ def api_concrete_mix():
 
 # Steel Weight Calculator routes
 @app.route('/steel-calculator')
+@login_required
 def steel_calculator():
     """Steel Weight Calculator page"""
     return render_template('steel_calculator.html')
+
+# Unit Converter routes
+@app.route('/unit-converter', methods=['GET', 'POST'])
+@login_required
+def unit_converter():
+    """Unit Converter Tool"""
+    form = UnitConverterForm()
+    result = None
+    
+    # Dynamic unit choices based on conversion type
+    if request.method == 'POST' and form.conversion_type.data:
+        conversion_type = form.conversion_type.data
+        
+        if conversion_type == 'length':
+            form.from_unit.choices = [('m', 'Meters'), ('ft', 'Feet'), ('mm', 'Millimeters'), ('cm', 'Centimeters'), ('km', 'Kilometers')]
+            form.to_unit.choices = [('m', 'Meters'), ('ft', 'Feet'), ('mm', 'Millimeters'), ('cm', 'Centimeters'), ('km', 'Kilometers')]
+        elif conversion_type == 'weight':
+            form.from_unit.choices = [('kg', 'Kilograms'), ('ton', 'Tons'), ('g', 'Grams'), ('lb', 'Pounds')]
+            form.to_unit.choices = [('kg', 'Kilograms'), ('ton', 'Tons'), ('g', 'Grams'), ('lb', 'Pounds')]
+        elif conversion_type == 'area':
+            form.from_unit.choices = [('sqm', 'Square Meters'), ('sqft', 'Square Feet'), ('acre', 'Acres'), ('hectare', 'Hectares')]
+            form.to_unit.choices = [('sqm', 'Square Meters'), ('sqft', 'Square Feet'), ('acre', 'Acres'), ('hectare', 'Hectares')]
+        elif conversion_type == 'volume':
+            form.from_unit.choices = [('cum', 'Cubic Meters'), ('cuft', 'Cubic Feet'), ('liter', 'Liters')]
+            form.to_unit.choices = [('cum', 'Cubic Meters'), ('cuft', 'Cubic Feet'), ('liter', 'Liters')]
+        elif conversion_type == 'pressure':
+            form.from_unit.choices = [('nmm2', 'N/mm²'), ('psi', 'PSI'), ('mpa', 'MPa'), ('bar', 'Bar')]
+            form.to_unit.choices = [('nmm2', 'N/mm²'), ('psi', 'PSI'), ('mpa', 'MPa'), ('bar', 'Bar')]
+        
+        if form.validate_on_submit():
+            result = convert_units(form.value.data, form.from_unit.data, form.to_unit.data, conversion_type)
+    
+    return render_template('unit_converter.html', form=form, result=result)
+
+# Material Estimator routes
+@app.route('/material-estimator', methods=['GET', 'POST'])
+@login_required
+def material_estimator_route():
+    """Material Estimator Tool"""
+    form = MaterialEstimatorForm()
+    result = None
+    
+    if form.validate_on_submit():
+        area = form.area.data
+        construction_type = form.construction_type.data
+        result = estimate_materials(area, construction_type)
+    
+    return render_template('material_estimator.html', form=form, result=result)
+
+def convert_units(value, from_unit, to_unit, conversion_type):
+    """Convert units based on type and return result"""
+    try:
+        # Length conversions
+        if conversion_type == 'length':
+            # Convert to meters first
+            if from_unit == 'ft':
+                value_in_m = value / 3.28084
+            elif from_unit == 'mm':
+                value_in_m = value / 1000
+            elif from_unit == 'cm':
+                value_in_m = value / 100
+            elif from_unit == 'km':
+                value_in_m = value * 1000
+            else:  # meters
+                value_in_m = value
+                
+            # Convert from meters to target unit
+            if to_unit == 'ft':
+                result_value = value_in_m * 3.28084
+            elif to_unit == 'mm':
+                result_value = value_in_m * 1000
+            elif to_unit == 'cm':
+                result_value = value_in_m * 100
+            elif to_unit == 'km':
+                result_value = value_in_m / 1000
+            else:  # meters
+                result_value = value_in_m
+                
+        # Weight conversions
+        elif conversion_type == 'weight':
+            # Convert to kg first
+            if from_unit == 'ton':
+                value_in_kg = value * 1000
+            elif from_unit == 'g':
+                value_in_kg = value / 1000
+            elif from_unit == 'lb':
+                value_in_kg = value / 2.20462
+            else:  # kg
+                value_in_kg = value
+                
+            # Convert from kg to target unit
+            if to_unit == 'ton':
+                result_value = value_in_kg / 1000
+            elif to_unit == 'g':
+                result_value = value_in_kg * 1000
+            elif to_unit == 'lb':
+                result_value = value_in_kg * 2.20462
+            else:  # kg
+                result_value = value_in_kg
+                
+        # Area conversions
+        elif conversion_type == 'area':
+            # Convert to sqm first
+            if from_unit == 'sqft':
+                value_in_sqm = value / 10.7639
+            elif from_unit == 'acre':
+                value_in_sqm = value * 4047
+            elif from_unit == 'hectare':
+                value_in_sqm = value * 10000
+            else:  # sqm
+                value_in_sqm = value
+                
+            # Convert from sqm to target unit
+            if to_unit == 'sqft':
+                result_value = value_in_sqm * 10.7639
+            elif to_unit == 'acre':
+                result_value = value_in_sqm / 4047
+            elif to_unit == 'hectare':
+                result_value = value_in_sqm / 10000
+            else:  # sqm
+                result_value = value_in_sqm
+                
+        # Volume conversions
+        elif conversion_type == 'volume':
+            # Convert to cum first
+            if from_unit == 'cuft':
+                value_in_cum = value / 35.3147
+            elif from_unit == 'liter':
+                value_in_cum = value / 1000
+            else:  # cum
+                value_in_cum = value
+                
+            # Convert from cum to target unit
+            if to_unit == 'cuft':
+                result_value = value_in_cum * 35.3147
+            elif to_unit == 'liter':
+                result_value = value_in_cum * 1000
+            else:  # cum
+                result_value = value_in_cum
+                
+        # Pressure conversions
+        elif conversion_type == 'pressure':
+            # Convert to N/mm² first
+            if from_unit == 'psi':
+                value_in_nmm2 = value / 145.038
+            elif from_unit == 'mpa':
+                value_in_nmm2 = value
+            elif from_unit == 'bar':
+                value_in_nmm2 = value / 10
+            else:  # nmm2
+                value_in_nmm2 = value
+                
+            # Convert from N/mm² to target unit
+            if to_unit == 'psi':
+                result_value = value_in_nmm2 * 145.038
+            elif to_unit == 'mpa':
+                result_value = value_in_nmm2
+            elif to_unit == 'bar':
+                result_value = value_in_nmm2 * 10
+            else:  # nmm2
+                result_value = value_in_nmm2
+        
+        return {
+            'original_value': value,
+            'from_unit': from_unit,
+            'result_value': round(result_value, 6),
+            'to_unit': to_unit,
+            'conversion_type': conversion_type
+        }
+        
+    except Exception as e:
+        logging.error(f"Unit conversion error: {str(e)}")
+        return {'error': str(e)}
+
+def estimate_materials(area, construction_type):
+    """Estimate materials based on area and construction type"""
+    try:
+        if construction_type == 'brick_wall':
+            # For 9-inch brick wall
+            bricks = area * 120  # bricks per sqm
+            cement_bags = area * 0.3  # bags per sqm
+            sand_cum = area * 0.05  # cubic meters per sqm
+            
+            return {
+                'construction_type': 'Brick Wall (9 inch)',
+                'area': area,
+                'materials': {
+                    'Bricks': f"{int(bricks)} nos",
+                    'Cement': f"{cement_bags:.2f} bags (50kg each)",
+                    'Sand': f"{sand_cum:.3f} cubic meters",
+                    'Water': f"{cement_bags * 25:.0f} liters"
+                }
+            }
+            
+        elif construction_type == 'concrete_slab':
+            # For 6-inch RCC slab
+            concrete_cum = area * 0.152  # cubic meters
+            cement_bags = concrete_cum * 7  # bags per cum
+            sand_cum = concrete_cum * 0.42  # cubic meters
+            aggregate_cum = concrete_cum * 0.84  # cubic meters
+            steel_kg = area * 12  # kg per sqm
+            
+            return {
+                'construction_type': 'RCC Slab (6 inch)',
+                'area': area,
+                'materials': {
+                    'Concrete Volume': f"{concrete_cum:.3f} cubic meters",
+                    'Cement': f"{cement_bags:.2f} bags (50kg each)",
+                    'Sand': f"{sand_cum:.3f} cubic meters",
+                    'Aggregate (20mm)': f"{aggregate_cum:.3f} cubic meters",
+                    'Steel Reinforcement': f"{steel_kg:.2f} kg",
+                    'Water': f"{cement_bags * 25:.0f} liters"
+                }
+            }
+            
+        elif construction_type == 'plaster':
+            # For 12mm thick plaster
+            cement_bags = area * 0.18  # bags per sqm
+            sand_cum = area * 0.015  # cubic meters per sqm
+            
+            return {
+                'construction_type': 'Plastering (12mm thick)',
+                'area': area,
+                'materials': {
+                    'Cement': f"{cement_bags:.2f} bags (50kg each)",
+                    'Sand': f"{sand_cum:.3f} cubic meters",
+                    'Water': f"{cement_bags * 25:.0f} liters"
+                }
+            }
+            
+        elif construction_type == 'flooring':
+            # For tile flooring
+            tiles_sqm = area * 1.05  # 5% extra for wastage
+            cement_bags = area * 0.25  # bags per sqm
+            sand_cum = area * 0.02  # cubic meters per sqm
+            
+            return {
+                'construction_type': 'Tile Flooring',
+                'area': area,
+                'materials': {
+                    'Tiles': f"{tiles_sqm:.2f} square meters (with 5% wastage)",
+                    'Cement': f"{cement_bags:.2f} bags (50kg each)",
+                    'Sand': f"{sand_cum:.3f} cubic meters",
+                    'Tile Adhesive': f"{area * 5:.2f} kg",
+                    'Water': f"{cement_bags * 25:.0f} liters"
+                }
+            }
+            
+        elif construction_type == 'foundation':
+            # For strip foundation (1m deep, 0.5m wide)
+            length = area  # assuming area represents length for strip foundation
+            concrete_cum = length * 1 * 0.5  # cubic meters
+            cement_bags = concrete_cum * 6.5  # bags per cum
+            sand_cum = concrete_cum * 0.45  # cubic meters
+            aggregate_cum = concrete_cum * 0.9  # cubic meters
+            steel_kg = concrete_cum * 60  # kg per cum
+            
+            return {
+                'construction_type': 'Strip Foundation (1m deep, 0.5m wide)',
+                'length': area,
+                'materials': {
+                    'Concrete Volume': f"{concrete_cum:.3f} cubic meters",
+                    'Cement': f"{cement_bags:.2f} bags (50kg each)",
+                    'Sand': f"{sand_cum:.3f} cubic meters",
+                    'Aggregate (20mm)': f"{aggregate_cum:.3f} cubic meters",
+                    'Steel Reinforcement': f"{steel_kg:.2f} kg",
+                    'Water': f"{cement_bags * 25:.0f} liters",
+                    'Excavation Volume': f"{concrete_cum:.3f} cubic meters"
+                }
+            }
+        
+    except Exception as e:
+        logging.error(f"Material estimation error: {str(e)}")
+        return {'error': str(e)}
 
 @app.route('/api/steel-weight', methods=['POST'])
 def api_steel_weight():
