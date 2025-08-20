@@ -16,6 +16,9 @@ class User(UserMixin, db.Model):
     # Relationship with chat history
     chat_histories = db.relationship('ChatHistory', backref='user', lazy=True, cascade='all, delete-orphan')
     
+    # Relationship with project schedules
+    project_schedules = db.relationship('ProjectSchedule', backref='user', lazy=True, cascade='all, delete-orphan')
+    
     def set_password(self, password):
         """Hash and set password"""
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -39,3 +42,18 @@ class ChatHistory(db.Model):
     
     def __repr__(self):
         return f'<ChatHistory {self.id} - User {self.user_id}>'
+
+class ProjectSchedule(db.Model):
+    """Project schedule model to store user project schedules"""
+    __tablename__ = 'project_schedules'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    schedule_name = db.Column(db.String(200), nullable=False, default='My Project')
+    tasks_data = db.Column(db.Text, nullable=False)  # JSON string of tasks
+    ai_analysis = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<ProjectSchedule {self.id} - {self.schedule_name}>'

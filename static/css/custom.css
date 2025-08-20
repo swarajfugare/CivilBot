@@ -181,6 +181,7 @@
     font-family: var(--bs-font-monospace);
     white-space: pre-wrap;
     background: var(--bs-gray-100);
+    color: #212529;
     padding: 1rem;
     border-radius: 0.375rem;
     border-left: 4px solid var(--bs-primary);
@@ -188,9 +189,233 @@
 
 .sample-analysis {
     background: var(--bs-gray-50);
+    color: #212529;
     padding: 1rem;
     border-radius: 0.375rem;
     border-left: 3px solid var(--bs-secondary);
+}
+
+/* Smart color scheme that adapts to background */
+body {
+    color: var(--bs-body-color);
+}
+
+/* Light background containers - force dark text */
+.card-body,
+.calculation-results,
+.safety-analysis,
+.analysis-content,
+.sample-analysis,
+.card {
+    background: #ffffff;
+    color: #212529 !important;
+    border: 1px solid #dee2e6;
+}
+
+.card-body {
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+
+/* Specific light background styles */
+.analysis-content,
+.sample-analysis {
+    background: #f8f9fa;
+    color: #212529 !important;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border-left: 4px solid var(--bs-primary);
+}
+
+/* Tables on light backgrounds */
+.table {
+    background: #ffffff;
+    color: #212529 !important;
+}
+
+.table th {
+    background: #f8f9fa;
+    color: #212529 !important;
+}
+
+.table td {
+    color: #212529 !important;
+}
+
+/* Form controls - always dark text on light background */
+.form-control, input, select, textarea {
+    background: #ffffff !important;
+    color: #212529 !important;
+    border: 1px solid #ced4da;
+}
+
+.form-control:focus, input:focus, select:focus, textarea:focus {
+    background: #ffffff !important;
+    color: #212529 !important;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+
+/* Dark background containers - ensure white text */
+.navbar-dark,
+.bg-dark,
+footer,
+.bg-dark *:not(.btn):not(.card):not(.card-body):not(.form-control):not(.dropdown-menu):not(.dropdown-item):not(.table) {
+    color: #ffffff !important;
+}
+
+/* Navbar specific styles */
+.navbar-dark .navbar-nav .nav-link,
+.navbar-dark .navbar-brand,
+.navbar-dark .dropdown-toggle {
+    color: #ffffff !important;
+}
+
+/* Footer text */
+footer,
+footer p,
+footer a {
+    color: #ffffff !important;
+}
+
+/* Home page hero section and dark sections */
+.py-5.bg-dark,
+.py-5.bg-dark *:not(.btn):not(.card):not(.card-body) {
+    color: #ffffff !important;
+}
+
+/* About page dark sections */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-info,
+.card.bg-warning,
+.card.bg-danger {
+    color: #ffffff !important;
+}
+
+.card.bg-primary *,
+.card.bg-success *,
+.card.bg-info *,
+.card.bg-danger * {
+    color: #ffffff !important;
+}
+
+.card.bg-warning,
+.card.bg-warning * {
+    color: #212529 !important;
+}
+
+/* AI response styling - adapt to container */
+.ai-response {
+    color: inherit;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Chat bubbles maintain their own colors */
+.user-bubble,
+.ai-bubble,
+.error-bubble {
+    color: #ffffff !important;
+}
+
+/* Ensure dropdown items are readable */
+.dropdown-menu {
+    background: #ffffff !important;
+    color: #212529 !important;
+}
+
+.dropdown-item {
+    color: #212529 !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+    color: #ffffff !important;
+}
+
+/* Alert text colors - keep original alert styling */
+.alert {
+    color: inherit;
+}
+
+.alert-success {
+    color: #0f5132;
+}
+
+.alert-danger {
+    color: #842029;
+}
+
+.alert-warning {
+    color: #664d03;
+}
+
+.alert-info {
+    color: #055160;
+}
+
+/* Button text colors */
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger,
+.btn-info,
+.btn-dark {
+    color: #ffffff !important;
+}
+
+.btn-warning,
+.btn-light {
+    color: #212529 !important;
+}
+
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-danger,
+.btn-outline-warning,
+.btn-outline-info {
+    color: inherit;
+}
+
+/* Ensure text in containers is properly colored */
+.container h1,
+.container h2,
+.container h3,
+.container h4,
+.container h5,
+.container h6,
+.container p,
+.container .lead {
+    color: inherit;
+}
+
+/* Override for main content area to ensure proper inheritance */
+main {
+    color: var(--bs-body-color);
+}
+
+/* Special handling for result cards in calculators */
+.row .col-md-6 .card.bg-primary h6,
+.row .col-md-6 .card.bg-success h6,
+.row .col-md-6 .card.bg-info h6,
+.row .col-md-6 .card.bg-warning h6,
+.row .col-md-6 .card.bg-danger h6 {
+    color: inherit !important;
+}
+
+/* Text on colored backgrounds in calculators/results */
+.card.bg-primary .card-body,
+.card.bg-success .card-body,
+.card.bg-info .card-body,
+.card.bg-danger .card-body {
+    color: #ffffff !important;
+}
+
+.card.bg-warning .card-body {
+    color: #212529 !important;
 }
 
 /* Image preview styles */
@@ -299,6 +524,26 @@ footer {
     background-color: #0056b3 !important;
 }
 
+/* Text color utilities */
+.text-light-bg {
+    color: #212529 !important;
+}
+
+.text-dark-bg {
+    color: #ffffff !important;
+}
+
+/* Force text colors for specific contexts */
+.force-white-text,
+.force-white-text * {
+    color: #ffffff !important;
+}
+
+.force-black-text,
+.force-black-text * {
+    color: #212529 !important;
+}
+
 /* Animation classes */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -359,4 +604,20 @@ footer {
 .progress-bar {
     background: linear-gradient(45deg, var(--bs-success), var(--bs-success-dark, #0f5132));
     border-radius: 0.75rem;
+}
+
+/* Instagram button styling */
+.btn-gradient-instagram {
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient-instagram:hover {
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(188, 24, 136, 0.3);
 }

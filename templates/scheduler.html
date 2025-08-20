@@ -26,6 +26,14 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" id="schedulerForm">
+                        <div class="mb-3">
+                            <label for="schedule_name" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Schedule Name
+                            </label>
+                            <input type="text" name="schedule_name" id="schedule_name" class="form-control" 
+                                   placeholder="Enter schedule name" value="{{ schedule_name or 'My Project' }}" required>
+                        </div>
+                        
                         <div id="taskContainer">
                             {% if tasks_data %}
                                 {% for task in tasks_data %}
@@ -69,6 +77,31 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Saved Schedules -->
+            {% if saved_schedules %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-save me-2"></i>
+                        Saved Schedules
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for saved_schedule in saved_schedules %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ saved_schedule.schedule_name }}</strong>
+                            <small class="text-muted d-block">{{ saved_schedule.updated_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <a href="{{ url_for('load_schedule', schedule_id=saved_schedule.id) }}" 
+                           class="btn btn-sm btn-outline-primary">Load</a>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Quick Templates -->
             <div class="card mt-4">

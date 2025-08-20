@@ -7,7 +7,8 @@ import base64
 from app import app, db
 from civil_ai import CivilAI
 from calculators import StructuralCalculator, MaterialEstimator, ProjectScheduler
-from models import User, ChatHistory
+from models import User, ChatHistory, ProjectSchedule
+import json
 from forms import LoginForm, RegistrationForm, UnitConverterForm, MaterialEstimatorForm
 
 # Initialize the AI assistant
@@ -198,17 +199,22 @@ def estimation_post():
     return redirect(url_for('estimation'))
 
 @app.route('/scheduler')
+@login_required
 def scheduler():
     """Project Scheduler page"""
-    return render_template('scheduler.html')
+    # Get user's saved schedules
+    saved_schedules = ProjectSchedule.query.filter_by(user_id=current_user.id).order_by(ProjectSchedule.updated_at.desc()).all()
+    return render_template('scheduler.html', saved_schedules=saved_schedules)
 
 @app.route('/scheduler', methods=['POST'])
+@login_required
 def scheduler_post():
     """Handle project scheduling"""
     try:
         # Get task data from form
         tasks_data = []
         task_count = 0
+        schedule_name = request.form.get('schedule_name', 'My Project').strip()
         
         # Extract tasks from form data
         while f'task_{task_count}' in request.form:
@@ -230,8 +236,24 @@ def scheduler_post():
         schedule = project_scheduler.create_schedule(tasks_data)
         ai_analysis = civil_ai.analyze_project_schedule(tasks_data)
         
+        # Save to database
+        project_schedule = ProjectSchedule(
+            user_id=current_user.id,
+            schedule_name=schedule_name,
+            tasks_data=json.dumps(tasks_data),
+            ai_analysis=ai_analysis
+        )
+        db.session.add(project_schedule)
+        db.session.commit()
+        
+        flash(f'Schedule "{schedule_name}" saved successfully!', 'success')
+        
+        # Get user's saved schedules for display
+        saved_schedules = ProjectSchedule.query.filter_by(user_id=current_user.id).order_by(ProjectSchedule.updated_at.desc()).all()
+        
         return render_template('scheduler.html', schedule=schedule, 
-                             ai_analysis=ai_analysis, tasks_data=tasks_data)
+                             ai_analysis=ai_analysis, tasks_data=tasks_data,
+                             saved_schedules=saved_schedules, schedule_name=schedule_name)
         
     except ValueError:
         flash('Please enter valid duration values', 'error')
@@ -291,6 +313,34 @@ def clear_chat():
     db.session.commit()
     flash('Chat history cleared', 'info')
     return redirect(url_for('chat'))
+
+@app.route('/load-schedule/<int:schedule_id>')
+@login_required
+def load_schedule(schedule_id):
+    """Load a saved schedule"""
+    try:
+        schedule_record = ProjectSchedule.query.filter_by(id=schedule_id, user_id=current_user.id).first()
+        if not schedule_record:
+            flash('Schedule not found', 'error')
+            return redirect(url_for('scheduler'))
+        
+        # Parse tasks data
+        tasks_data = json.loads(schedule_record.tasks_data)
+        
+        # Create schedule
+        schedule = project_scheduler.create_schedule(tasks_data)
+        
+        # Get user's saved schedules
+        saved_schedules = ProjectSchedule.query.filter_by(user_id=current_user.id).order_by(ProjectSchedule.updated_at.desc()).all()
+        
+        return render_template('scheduler.html', schedule=schedule,
+                             ai_analysis=schedule_record.ai_analysis, tasks_data=tasks_data,
+                             saved_schedules=saved_schedules, schedule_name=schedule_record.schedule_name)
+        
+    except Exception as e:
+        logging.error(f"Load schedule error: {str(e)}")
+        flash(f'Error loading schedule: {str(e)}', 'error')
+        return redirect(url_for('scheduler'))
 
 # Unit conversion helper functions
 def meters_to_feet(meters):
