@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Steel Weight Calculator - CivilAI Assistant{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-weight-hanging text-primary me-2"></i>
+                    Steel Weight Calculator
+                </h2>
+                <div class="unit-toggle">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="unit" id="meters" value="meters" checked>
+                        <label class="btn btn-outline-primary" for="meters">Meters</label>
+                        
+                        <input type="radio" class="btn-check" name="unit" id="feet" value="feet">
+                        <label class="btn btn-outline-primary" for="feet">Feet</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Calculator Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus me-2"></i>
+                        Add Steel Bars
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <form id="steelForm">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="diameter" class="form-label">Diameter (mm)</label>
+                                <select class="form-select" id="diameter" required>
+                                    <option value="">Select diameter</option>
+                                    <option value="6">6 mm</option>
+                                    <option value="8">8 mm</option>
+                                    <option value="10">10 mm</option>
+                                    <option value="12">12 mm</option>
+                                    <option value="16">16 mm</option>
+                                    <option value="20">20 mm</option>
+                                    <option value="25">25 mm</option>
+                                    <option value="32">32 mm</option>
+                                    <option value="40">40 mm</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="length" class="form-label">Length <span id="lengthUnit">(m)</span></label>
+                                <input type="number" class="form-control" id="length" step="0.01" min="0.01" required
+                                       placeholder="Enter length">
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" min="1" value="1" required
+                                       placeholder="Number of bars">
+                            </div>
+                            
+                            <div class="col-md-3 mb-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-plus me-2"></i>Add Bar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Steel Bars List -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Steel Bars List
+                    </h5>
+                    <div>
+                        <button class="btn btn-sm btn-warning me-2" onclick="clearAll()">
+                            <i class="fas fa-trash me-1"></i>Clear All
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="calculateWeight()" id="calculateBtn">
+                            <i class="fas fa-calculator me-1"></i>Calculate
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div id="steelBarsContainer">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle fa-2x mb-3"></i>
+                            <p>No steel bars added yet. Use the form above to add steel bars.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="d-none">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Steel Weight Results
+                        </h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyResults()">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div id="resultsContent">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-info-circle text-info me-2"></i>
+                        Steel Weight Formula
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i><strong>Weight (kg) = (D² ÷ 162) × L × Quantity</strong></li>
+                        <li><i class="fas fa-check text-success me-2"></i>D = Diameter in mm, L = Length in meters</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Formula applies to Fe415 and Fe500 grade steel</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Add 2-5% extra for cutting and wastage</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let steelBars = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('steelForm');
+    const unitRadios = document.querySelectorAll('input[name="unit"]');
+    const lengthUnit = document.getElementById('lengthUnit');
+    
+    // Update length unit display
+    unitRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            lengthUnit.textContent = this.value === 'feet' ? '(ft)' : '(m)';
+            updateBarsDisplay();
+        });
+    });
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        addSteelBar();
+    });
+});
+
+function addSteelBar() {
+    const diameter = parseFloat(document.getElementById('diameter').value);
+    const length = parseFloat(document.getElementById('length').value);
+    const quantity = parseInt(document.getElementById('quantity').value);
+    
+    if (!diameter || !length || !quantity) {
+        CivilAI.showNotification('Please fill in all fields', 'warning');
+        return;
+    }
+    
+    const bar = {
+        id: Date.now(),
+        diameter: diameter,
+        length: length,
+        quantity: quantity
+    };
+    
+    steelBars.push(bar);
+    updateBarsDisplay();
+    
+    // Clear form
+    document.getElementById('diameter').value = '';
+    document.getElementById('length').value = '';
+    document.getElementById('quantity').value = '1';
+    
+    CivilAI.showNotification('Steel bar added successfully', 'success');
+}
+
+function removeSteelBar(id) {
+    steelBars = steelBars.filter(bar => bar.id !== id);
+    updateBarsDisplay();
+    CivilAI.showNotification('Steel bar removed', 'info');
+}
+
+function clearAll() {
+    if (steelBars.length === 0) {
+        CivilAI.showNotification('No bars to clear', 'info');
+        return;
+    }
+    
+    steelBars = [];
+    updateBarsDisplay();
+    document.getElementById('resultsSection').classList.add('d-none');
+    CivilAI.showNotification('All steel bars cleared', 'info');
+}
+
+function updateBarsDisplay() {
+    const container = document.getElementById('steelBarsContainer');
+    const unit = document.querySelector('input[name="unit"]:checked').value;
+    const lengthLabel = unit === 'feet' ? 'ft' : 'm';
+    
+    if (steelBars.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <p>No steel bars added yet. Use the form above to add steel bars.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = steelBars.map(bar => `
+        <div class="row align-items-center mb-2 p-2 border rounded">
+            <div class="col-md-2">
+                <strong>${bar.diameter}mm</strong>
+            </div>
+            <div class="col-md-2">
+                ${bar.length} ${lengthLabel}
+            </div>
+            <div class="col-md-2">
+                ${bar.quantity} bars
+            </div>
+            <div class="col-md-4">
+                <small class="text-muted">
+                    Weight: ${calculateBarWeight(bar, unit).toFixed(3)} kg
+                    ${unit === 'feet' ? ` (${(calculateBarWeight(bar, unit) * 2.20462).toFixed(3)} lbs)` : ''}
+                </small>
+            </div>
+            <div class="col-md-2 text-end">
+                <button class="btn btn-sm btn-outline-danger" onclick="removeSteelBar(${bar.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+function calculateBarWeight(bar, unit) {
+    let length = bar.length;
+    if (unit === 'feet') {
+        length = length / 3.28084; // Convert feet to meters
+    }
+    return (bar.diameter * bar.diameter / 162) * length * bar.quantity;
+}
+
+async function calculateWeight() {
+    if (steelBars.length === 0) {
+        CivilAI.showNotification('Please add at least one steel bar', 'warning');
+        return;
+    }
+    
+    const calculateBtn = document.getElementById('calculateBtn');
+    const originalText = calculateBtn.innerHTML;
+    calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Calculating...';
+    calculateBtn.disabled = true;
+    
+    try {
+        const unit = document.querySelector('input[name="unit"]:checked').value;
+        
+        const response = await fetch('/api/steel-weight', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                bars: steelBars,
+                unit: unit
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayResults(data.results);
+            document.getElementById('resultsSection').classList.remove('d-none');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            CivilAI.showNotification(data.error || 'Calculation failed', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        CivilAI.showNotification('Network error. Please try again.', 'error');
+    } finally {
+        calculateBtn.innerHTML = originalText;
+        calculateBtn.disabled = false;
+    }
+}
+
+function displayResults(results) {
+    const unit = document.querySelector('input[name="unit"]:checked').value;
+    
+    let barsHTML = results.bars.map(bar => `
+        <tr>
+            <td>${bar.diameter}mm</td>
+            <td>${bar.length} ${bar.unit === 'feet' ? 'ft' : 'm'}</td>
+            <td>${bar.quantity}</td>
+            <td>${bar.weight_per_bar_kg} kg ${bar.weight_per_bar_lbs ? `(${bar.weight_per_bar_lbs} lbs)` : ''}</td>
+            <td>${bar.total_weight_kg} kg ${bar.total_weight_lbs ? `(${bar.total_weight_lbs} lbs)` : ''}</td>
+        </tr>
+    `).join('');
+    
+    const html = `
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Diameter</th>
+                        <th>Length</th>
+                        <th>Quantity</th>
+                        <th>Weight/Bar</th>
+                        <th>Total Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${barsHTML}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h6><i class="fas fa-weight-hanging me-2"></i>Total Weight</h6>
+                        <h4>${results.total_weight_kg} kg</h4>
+                        ${results.total_weight_lbs ? `<small>${results.total_weight_lbs} lbs</small>` : ''}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h6><i class="fas fa-list-ol me-2"></i>Total Bars</h6>
+                        <h4>${results.total_bars}</h4>
+                        <small>Number of bars</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Recommendation:</strong> Add 2-5% extra weight for cutting wastage and site handling.
+        </div>
+    `;
+    
+    document.getElementById('resultsContent').innerHTML = html;
+}
+
+function copyResults() {
+    const resultsText = document.getElementById('resultsContent').textContent;
+    CivilAI.copyToClipboard(resultsText);
+}
+</script>
+{% endblock %}

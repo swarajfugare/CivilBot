@@ -80,12 +80,12 @@
 
                 <!-- Message Input Form -->
                 <div class="card-footer">
-                    <form method="POST">
+                    <form id="chatForm">
                         <div class="input-group">
                             <input type="text" name="message" class="form-control" 
                                    placeholder="Ask your civil engineering question..." 
                                    required autocomplete="off" id="messageInput">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="sendBtn">
                                 <i class="fas fa-paper-plane me-1"></i>Send
                             </button>
                         </div>
@@ -115,7 +115,197 @@
 
 {% block scripts %}
 <script>
-// Auto-scroll to bottom of chat
+// Chat functionality with AJAX
+let isTyping = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatContainer = document.querySelector('.chat-container');
+    
+    // Focus on input field
+    messageInput.focus();
+    scrollToBottom();
+    
+    // Handle form submission with AJAX
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const message = messageInput.value.trim();
+        if (!message || isTyping) return;
+        
+        // Add user message to chat
+        addUserMessage(message);
+        
+        // Clear input and show loading
+        messageInput.value = '';
+        showTypingIndicator();
+        
+        // Disable form
+        messageInput.disabled = true;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+        
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            
+            // Remove typing indicator
+            hideTypingIndicator();
+            
+            if (data.success) {
+                // Add AI response with typing effect
+                await addAIMessage(data.ai_response);
+            } else {
+                addErrorMessage(data.error || 'Sorry, I encountered an error. Please try again.');
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            hideTypingIndicator();
+            addErrorMessage('Network error. Please check your connection and try again.');
+        } finally {
+            // Re-enable form
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send';
+            messageInput.focus();
+        }
+    });
+    
+    // Handle Enter key
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+    });
+});
+
+function addUserMessage(message) {
+    const chatContainer = document.querySelector('.chat-container');
+    
+    const messageHTML = `
+        <div class="message-bubble user-message mb-3 fade-in">
+            <div class="d-flex justify-content-end">
+                <div class="chat-bubble user-bubble">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-user me-2"></i>
+                        <small class="opacity-75">You</small>
+                    </div>
+                    <div class="message-text">${escapeHtml(message)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatContainer.insertAdjacentHTML('beforeend', messageHTML);
+    scrollToBottom();
+}
+
+async function addAIMessage(message) {
+    const chatContainer = document.querySelector('.chat-container');
+    
+    const messageHTML = `
+        <div class="message-bubble ai-message mb-4 fade-in">
+            <div class="d-flex justify-content-start">
+                <div class="chat-bubble ai-bubble">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-robot me-2"></i>
+                        <small class="opacity-75">CivilAI</small>
+                    </div>
+                    <div class="message-text" id="typing-text"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatContainer.insertAdjacentHTML('beforeend', messageHTML);
+    
+    // Type the message with animation
+    const typingElement = document.getElementById('typing-text');
+    await typeMessage(typingElement, message);
+    
+    scrollToBottom();
+}
+
+function addErrorMessage(error) {
+    const chatContainer = document.querySelector('.chat-container');
+    
+    const messageHTML = `
+        <div class="message-bubble ai-message mb-4 fade-in">
+            <div class="d-flex justify-content-start">
+                <div class="chat-bubble error-bubble">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <small class="opacity-75">Error</small>
+                    </div>
+                    <div class="message-text">${escapeHtml(error)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatContainer.insertAdjacentHTML('beforeend', messageHTML);
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    isTyping = true;
+    const chatContainer = document.querySelector('.chat-container');
+    
+    const typingHTML = `
+        <div class="message-bubble ai-message mb-4 fade-in" id="typing-indicator">
+            <div class="d-flex justify-content-start">
+                <div class="chat-bubble ai-bubble">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-robot me-2"></i>
+                        <small class="opacity-75">CivilAI</small>
+                    </div>
+                    <div class="typing-animation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatContainer.insertAdjacentHTML('beforeend', typingHTML);
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
+    isTyping = false;
+}
+
+async function typeMessage(element, message) {
+    const words = message.split(' ');
+    element.innerHTML = '';
+    
+    for (let i = 0; i < words.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 30)); // Typing speed
+        element.innerHTML += (i > 0 ? ' ' : '') + words[i];
+        scrollToBottom();
+    }
+    
+    // Convert line breaks for proper display
+    element.innerHTML = element.innerHTML.replace(/\n/g, '<br>');
+}
+
 function scrollToBottom() {
     const chatContainer = document.querySelector('.chat-container');
     if (chatContainer) {
@@ -123,18 +313,11 @@ function scrollToBottom() {
     }
 }
 
-// Scroll to bottom on page load
-document.addEventListener('DOMContentLoaded', scrollToBottom);
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-// Focus on input field
-document.getElementById('messageInput').focus();
-
-// Auto-resize and scroll functionality
-document.getElementById('messageInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        this.closest('form').submit();
-    }
-});
 </script>
 {% endblock %}

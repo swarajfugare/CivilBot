@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Concrete Mix Calculator - CivilAI Assistant{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-cube text-primary me-2"></i>
+                    Concrete Mix Calculator
+                </h2>
+                <div class="unit-toggle">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="unit" id="meters" value="meters" checked>
+                        <label class="btn btn-outline-primary" for="meters">Meters</label>
+                        
+                        <input type="radio" class="btn-check" name="unit" id="feet" value="feet">
+                        <label class="btn btn-outline-primary" for="feet">Feet</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Calculator Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calculator me-2"></i>
+                        Calculate Concrete Mix
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <form id="concreteForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="grade" class="form-label">Concrete Grade</label>
+                                <select class="form-select" id="grade" required>
+                                    <option value="M15">M15 (1:2:4)</option>
+                                    <option value="M20" selected>M20 (1:1.5:3)</option>
+                                    <option value="M25">M25 (1:1:2)</option>
+                                    <option value="M30">M30 (1:1:1.5)</option>
+                                    <option value="M35">M35 (1:1:1.2)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="volume" class="form-label">Volume <span id="volumeUnit">(m³)</span></label>
+                                <input type="number" class="form-control" id="volume" step="0.01" min="0.01" required
+                                       placeholder="Enter volume">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="waterCementRatio" class="form-label">Water-Cement Ratio</label>
+                                <input type="number" class="form-control" id="waterCementRatio" step="0.01" min="0.3" max="0.8" 
+                                       value="0.5" required placeholder="0.45 - 0.6">
+                                <div class="form-text">Typical range: 0.45 - 0.6</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100" id="calculateBtn">
+                                    <i class="fas fa-calculator me-2"></i>Calculate Mix
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="d-none">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Concrete Mix Results
+                        </h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyResults()">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div id="resultsContent">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-info-circle text-info me-2"></i>
+                        About Concrete Mix Design
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>M15, M20, M25, M30, M35 represent characteristic compressive strength in N/mm²</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Water-cement ratio affects workability and strength</li>
+                        <li><i class="fas fa-check text-success me-2"></i>1 cement bag = 50 kg, densities used: Cement (1440 kg/m³), Sand (1600 kg/m³), Aggregate (1500 kg/m³)</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Add 5-10% extra for wastage in actual construction</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('concreteForm');
+    const resultsSection = document.getElementById('resultsSection');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const unitRadios = document.querySelectorAll('input[name="unit"]');
+    const volumeUnit = document.getElementById('volumeUnit');
+    
+    // Update volume unit display
+    unitRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            volumeUnit.textContent = this.value === 'feet' ? '(ft³)' : '(m³)';
+        });
+    });
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        const originalText = calculateBtn.innerHTML;
+        calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Calculating...';
+        calculateBtn.disabled = true;
+        
+        try {
+            const formData = {
+                grade: document.getElementById('grade').value,
+                volume: parseFloat(document.getElementById('volume').value),
+                water_cement_ratio: parseFloat(document.getElementById('waterCementRatio').value),
+                unit: document.querySelector('input[name="unit"]:checked').value
+            };
+            
+            const response = await fetch('/api/concrete-mix', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                displayResults(data.results);
+                resultsSection.classList.remove('d-none');
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                CivilAI.showNotification(data.error || 'Calculation failed', 'error');
+            }
+            
+        } catch (error) {
+            console.error('Error:', error);
+            CivilAI.showNotification('Network error. Please try again.', 'error');
+        } finally {
+            calculateBtn.innerHTML = originalText;
+            calculateBtn.disabled = false;
+        }
+    });
+});
+
+function displayResults(results) {
+    const unit = document.querySelector('input[name="unit"]:checked').value;
+    const volumeLabel = unit === 'feet' ? 'ft³' : 'm³';
+    
+    const html = `
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6><i class="fas fa-industry me-2"></i>Cement</h6>
+                        <p class="mb-1"><strong>${results.cement.weight_kg} kg</strong></p>
+                        <p class="mb-1">${results.cement.bags} bags (50kg each)</p>
+                        <small>${results.cement.volume_m3} m³${unit === 'feet' ? ` (${results.cement.volume_ft3} ft³)` : ''}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h6><i class="fas fa-mountain me-2"></i>Sand</h6>
+                        <p class="mb-1"><strong>${results.sand.weight_kg} kg</strong></p>
+                        <small>${results.sand.volume_m3} m³${unit === 'feet' ? ` (${results.sand.volume_ft3} ft³)` : ''}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h6><i class="fas fa-cubes me-2"></i>Aggregate</h6>
+                        <p class="mb-1"><strong>${results.aggregate.weight_kg} kg</strong></p>
+                        <small>${results.aggregate.volume_m3} m³${unit === 'feet' ? ` (${results.aggregate.volume_ft3} ft³)` : ''}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h6><i class="fas fa-tint me-2"></i>Water</h6>
+                        <p class="mb-1"><strong>${results.water_liters} liters</strong></p>
+                        <small>W/C Ratio based</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-chart-pie me-2"></i>Mix Design Summary</h6>
+                    <p class="mb-2"><strong>Grade:</strong> ${results.grade}</p>
+                    <p class="mb-2"><strong>Mix Ratio:</strong> ${results.mix_ratio} (Cement:Sand:Aggregate)</p>
+                    <p class="mb-0"><strong>Volume:</strong> ${results.volume} ${volumeLabel}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('resultsContent').innerHTML = html;
+}
+
+function copyResults() {
+    const resultsText = document.getElementById('resultsContent').textContent;
+    CivilAI.copyToClipboard(resultsText);
+}
+</script>
+{% endblock %}

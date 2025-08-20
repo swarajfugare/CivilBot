@@ -39,11 +39,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.endpoint == 'calculator' }}" href="{{ url_for('calculator') }}">
-                            <i class="fas fa-calculator me-1"></i>Calculator
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {{ 'active' if request.endpoint == 'estimation' }}" href="{{ url_for('estimation') }}">
                             <i class="fas fa-clipboard-list me-1"></i>Estimation
                         </a>
@@ -57,6 +52,22 @@
                         <a class="nav-link {{ 'active' if request.endpoint == 'safety' }}" href="{{ url_for('safety') }}">
                             <i class="fas fa-shield-alt me-1"></i>Safety
                         </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="calculatorsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-calculator me-1"></i>Calculators
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('calculator') }}">
+                                <i class="fas fa-ruler-combined me-2"></i>Structural Calculator
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('concrete_calculator') }}">
+                                <i class="fas fa-cube me-2"></i>Concrete Mix Calculator
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('steel_calculator') }}">
+                                <i class="fas fa-weight-hanging me-2"></i>Steel Weight Calculator
+                            </a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if request.endpoint == 'about' }}" href="{{ url_for('about') }}">
@@ -92,10 +103,13 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <p>&copy; 2024 CivilAI Assistant. Built for civil engineers.</p>
+                    <p>&copy; 2025 CivilAI Assistant. Built for civil engineers.</p>
                 </div>
                 <div class="col-md-6 text-end">
-                    <p>Powered by OpenAI GPT-4o</p>
+                    <p>Developed by <strong>Swaraj Fugare</strong> | 
+                    <a href="https://www.instagram.com/swaraj.fugare_23/" target="_blank" class="text-light text-decoration-none">
+                        <i class="fab fa-instagram me-1"></i>@swaraj.fugare_23
+                    </a></p>
                 </div>
             </div>
         </div>

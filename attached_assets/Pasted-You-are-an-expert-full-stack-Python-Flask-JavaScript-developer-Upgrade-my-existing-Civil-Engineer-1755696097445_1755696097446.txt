@@ -1,0 +1,49 @@
+You are an expert full-stack Python/Flask + JavaScript developer. Upgrade my existing Civil Engineering AI Chatbot web app with the following improvements:
+
+### 1. Chat Experience
+- Convert the chat so it does NOT refresh the page.
+- Use JavaScript (fetch API / AJAX) to send the user’s question to Flask and update the chat window dynamically.
+- Add a **typing animation** (three dots …) while waiting for AI’s response.
+- Responses should appear smoothly like real typing.
+
+### 2. Unit Options
+- Currently the app only accepts input in meters. Add a **toggle for units (Meters / Feet)**.
+- If the user selects "Feet", automatically convert internally to meters for calculation but display results in feet too.
+
+### 3. UI/UX Improvements
+- Use a clean, modern design with Bootstrap or TailwindCSS.
+- Chat window should look like a modern messenger (bubbles for user & AI).
+- Keep background light and professional (civil engineering theme).
+- Add a card layout with shadows and rounded corners for a polished look.
+- Ensure responsive design (works on mobile & desktop).
+
+### 4. Footer Customization
+- Remove all references to ChatGPT or OpenAI branding.
+- In footer, add developer credit:
+  `Developed by Swaraj Fugare | Instagram: @swaraj.fugare_23`
+- Make the Instagram text a clickable link: https://www.instagram.com/swaraj.fugare_23/
+
+### 5. Extra Features for Civil Engineers
+Add 2 new useful tools:
+1. **Concrete Mix Calculator**
+   - Input: grade (e.g. M20), volume, water-cement ratio.
+   - Output: cement, sand, aggregate quantities.
+   - Show result in kg and bags of cement.
+2. **Steel Weight Calculator**
+   - Input: bar diameter (mm), length (m).
+   - Output: weight of steel bar in kg.
+   - Allow multiple bars at once.
+
+### 6. Project Requirements
+- Keep backend in Flask.
+- Use fetch/AJAX for chat messages.
+- Keep `requirements.txt` updated (flask, openai/groq, gunicorn, requests, etc.).
+- Templates should be in `templates/` and static assets in `static/`.
+- Code should run on Render and Replit without changes.
+
+Deliver full working code: 
+- Updated `main.py` / `routes.py`
+- Updated HTML templates (chat.html, base.html, footer)
+- Updated JavaScript for dynamic chat
+- Updated CSS for modern look
+- requirements.txt
