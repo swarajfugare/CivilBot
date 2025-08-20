@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Project Scheduler - CivilAI Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row py-4">
+        <div class="col-12">
+            <h2>
+                <i class="fas fa-calendar-alt text-warning me-2"></i>
+                Project Scheduler
+            </h2>
+            <p class="lead">Plan your construction timeline with AI-powered schedule analysis.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Task Input Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        Project Tasks
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="schedulerForm">
+                        <div id="taskContainer">
+                            {% if tasks_data %}
+                                {% for task in tasks_data %}
+                                <div class="task-input mb-3">
+                                    <div class="input-group">
+                                        <input type="text" name="task_{{ loop.index0 }}" class="form-control" 
+                                               placeholder="Task name" value="{{ task.name }}" required>
+                                        <input type="number" name="duration_{{ loop.index0 }}" class="form-control" 
+                                               placeholder="Days" min="1" max="365" value="{{ task.duration }}" style="max-width: 80px;" required>
+                                        <button type="button" class="btn btn-outline-danger remove-task">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="task-input mb-3">
+                                <div class="input-group">
+                                    <input type="text" name="task_0" class="form-control" 
+                                           placeholder="Task name" required>
+                                    <input type="number" name="duration_0" class="form-control" 
+                                           placeholder="Days" min="1" max="365" style="max-width: 80px;" required>
+                                    <button type="button" class="btn btn-outline-danger remove-task">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="button" id="addTask" class="btn btn-outline-secondary">
+                                <i class="fas fa-plus me-2"></i>Add Task
+                            </button>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-calendar me-2"></i>
+                            Create Schedule
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Templates -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-magic me-2"></i>
+                        Quick Templates
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary load-template" 
+                                data-template="residential">Residential Building</button>
+                        <button type="button" class="btn btn-sm btn-outline-success load-template" 
+                                data-template="commercial">Commercial Project</button>
+                        <button type="button" class="btn btn-sm btn-outline-info load-template" 
+                                data-template="renovation">Renovation Work</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            {% if schedule %}
+            <!-- Schedule Results -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-gantt me-2"></i>
+                        Project Schedule
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Project Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h6>Start Date</h6>
+                                    <h5>{{ schedule.project_start }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h6>End Date</h6>
+                                    <h5>{{ schedule.project_end }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning">
+                                <div class="card-body text-center">
+                                    <h6>Duration</h6>
+                                    <h5>{{ schedule.total_duration }} days</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h6>Tasks</h6>
+                                    <h5>{{ schedule.total_tasks }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gantt Chart -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-chart-bar me-2"></i>Timeline View</h6>
+                        <div class="gantt-container" style="overflow-x: auto;">
+                            {% for task in schedule.tasks %}
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="task-name" style="min-width: 200px; max-width: 200px;">
+                                    <small><strong>{{ task.name }}</strong></small>
+                                </div>
+                                <div class="timeline" style="position: relative; width: 100%; height: 25px; margin-left: 10px;">
+                                    <div class="task-bar bg-primary rounded" 
+                                         style="position: absolute; 
+                                                left: {{ (task.start_day - 1) * 15 }}px; 
+                                                width: {{ task.duration * 15 }}px; 
+                                                height: 20px;
+                                                opacity: 0.8;">
+                                    </div>
+                                    <small class="text-muted ms-2" style="position: absolute; left: {{ (task.start_day - 1) * 15 + task.duration * 15 + 5 }}px; top: 2px;">
+                                        {{ task.duration }} days
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            <!-- Timeline scale -->
+                            <div class="d-flex align-items-center mt-3 pt-2 border-top">
+                                <div style="min-width: 200px; max-width: 200px;">
+                                    <small><strong>Timeline (days)</strong></small>
+                                </div>
+                                <div style="margin-left: 10px;">
+                                    {% for day in range(1, schedule.total_duration + 1, 5) %}
+                                    <span style="position: absolute; left: {{ (day - 1) * 15 }}px;" class="text-muted">
+                                        <small>{{ day }}</small>
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Details Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Task Name</th>
+                                    <th>Duration</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in schedule.tasks %}
+                                <tr>
+                                    <td>{{ task.id }}</td>
+                                    <td>{{ task.name }}</td>
+                                    <td>{{ task.duration }} days</td>
+                                    <td>{{ task.start_date }}</td>
+                                    <td>{{ task.end_date }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {% if ai_analysis %}
+            <!-- AI Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-brain me-2"></i>
+                        AI Schedule Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="ai-analysis">
+                        {{ ai_analysis|nl2br }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- Instructions Card -->
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-calendar-alt fa-4x text-muted mb-4"></i>
+                    <h4>Create Your Project Schedule</h4>
+                    <p class="text-muted mb-4">
+                        Add your construction tasks with durations to generate a project timeline and get AI-powered insights.
+                    </p>
+                    <div class="row text-start">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check text-success me-2"></i>What You'll Get:</h6>
+                            <ul class="list-unstyled">
+                                <li>• Visual Gantt chart timeline</li>
+                                <li>• Project start and end dates</li>
+                                <li>• Task dependencies view</li>
+                                <li>• AI schedule analysis</li>
+                                <li>• Risk and optimization tips</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb text-warning me-2"></i>Sample Tasks:</h6>
+                            <ul class="list-unstyled">
+                                <li>• Excavation - 5 days</li>
+                                <li>• Foundation work - 10 days</li>
+                                <li>• Column casting - 7 days</li>
+                                <li>• Slab work - 15 days</li>
+                                <li>• Brick masonry - 20 days</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Task management
+let taskCount = {{ tasks_data|length if tasks_data else 1 }};
+
+// Add new task
+document.getElementById('addTask').addEventListener('click', function() {
+    const container = document.getElementById('taskContainer');
+    const newTask = document.createElement('div');
+    newTask.className = 'task-input mb-3';
+    newTask.innerHTML = `
+        <div class="input-group">
+            <input type="text" name="task_${taskCount}" class="form-control" placeholder="Task name" required>
+            <input type="number" name="duration_${taskCount}" class="form-control" placeholder="Days" min="1" max="365" style="max-width: 80px;" required>
+            <button type="button" class="btn btn-outline-danger remove-task">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(newTask);
+    taskCount++;
+});
+
+// Remove task
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-task')) {
+        const taskInputs = document.querySelectorAll('.task-input');
+        if (taskInputs.length > 1) {
+            e.target.closest('.task-input').remove();
+        }
+    }
+});
+
+// Template loading
+const templates = {
+    residential: [
+        {name: 'Site Survey & Planning', duration: 3},
+        {name: 'Excavation', duration: 5},
+        {name: 'Foundation Work', duration: 10},
+        {name: 'Plinth Beam Construction', duration: 7},
+        {name: 'Column Casting', duration: 8},
+        {name: 'Slab Work', duration: 12},
+        {name: 'Brick Masonry', duration: 20},
+        {name: 'Roof Construction', duration: 15},
+        {name: 'Electrical & Plumbing', duration: 18},
+        {name: 'Plastering', duration: 12},
+        {name: 'Flooring & Tiling', duration: 10},
+        {name: 'Painting & Finishing', duration: 8}
+    ],
+    commercial: [
+        {name: 'Design & Approvals', duration: 15},
+        {name: 'Site Preparation', duration: 7},
+        {name: 'Deep Foundation', duration: 20},
+        {name: 'Basement Construction', duration: 30},
+        {name: 'Superstructure - Ground Floor', duration: 25},
+        {name: 'Superstructure - Upper Floors', duration: 45},
+        {name: 'Facade & Exterior Work', duration: 30},
+        {name: 'MEP Installation', duration: 40},
+        {name: 'Interior Fit-out', duration: 35},
+        {name: 'Testing & Commissioning', duration: 15}
+    ],
+    renovation: [
+        {name: 'Assessment & Planning', duration: 5},
+        {name: 'Demolition Work', duration: 7},
+        {name: 'Structural Repairs', duration: 10},
+        {name: 'Electrical Upgrades', duration: 8},
+        {name: 'Plumbing Modifications', duration: 6},
+        {name: 'Masonry & Plastering', duration: 12},
+        {name: 'Flooring Installation', duration: 8},
+        {name: 'Painting & Finishing', duration: 6},
+        {name: 'Cleanup & Handover', duration: 3}
+    ]
+};
+
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.load-template')) {
+        const templateType = e.target.closest('.load-template').dataset.template;
+        const template = templates[templateType];
+        
+        const container = document.getElementById('taskContainer');
+        container.innerHTML = '';
+        taskCount = 0;
+        
+        template.forEach((task, index) => {
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'task-input mb-3';
+            taskDiv.innerHTML = `
+                <div class="input-group">
+                    <input type="text" name="task_${index}" class="form-control" placeholder="Task name" value="${task.name}" required>
+                    <input type="number" name="duration_${index}" class="form-control" placeholder="Days" min="1" max="365" value="${task.duration}" style="max-width: 80px;" required>
+                    <button type="button" class="btn btn-outline-danger remove-task">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(taskDiv);
+            taskCount++;
+        });
+    }
+});
+</script>
+{% endblock %}

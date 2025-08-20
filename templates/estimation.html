@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}Material Estimation - CivilAI Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row py-4">
+        <div class="col-12">
+            <h2>
+                <i class="fas fa-clipboard-list text-info me-2"></i>
+                Material Estimation (BOQ Generator)
+            </h2>
+            <p class="lead">Calculate material quantities and costs for your construction project.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Input Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-home me-2"></i>
+                        Project Dimensions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="length" class="form-label">
+                                <i class="fas fa-ruler-horizontal me-1"></i>
+                                Length (m)
+                            </label>
+                            <input type="number" name="length" id="length" class="form-control" 
+                                   step="0.1" min="1" max="100" 
+                                   value="{{ length if length else '' }}" 
+                                   placeholder="e.g., 12" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="width" class="form-label">
+                                <i class="fas fa-ruler-vertical me-1"></i>
+                                Width (m)
+                            </label>
+                            <input type="number" name="width" id="width" class="form-control" 
+                                   step="0.1" min="1" max="100" 
+                                   value="{{ width if width else '' }}" 
+                                   placeholder="e.g., 8" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="height" class="form-label">
+                                <i class="fas fa-arrows-alt-v me-1"></i>
+                                Height (m)
+                            </label>
+                            <input type="number" name="height" id="height" class="form-control" 
+                                   step="0.1" min="2" max="20" 
+                                   value="{{ height if height else '' }}" 
+                                   placeholder="e.g., 3" required>
+                        </div>
+
+                        <hr>
+
+                        <h6 class="mb-3">
+                            <i class="fas fa-rupee-sign me-2"></i>
+                            Unit Rates
+                        </h6>
+
+                        <div class="mb-3">
+                            <label for="cement_rate" class="form-label">Cement Rate (₹/bag 50kg)</label>
+                            <input type="number" name="cement_rate" id="cement_rate" class="form-control" 
+                                   step="1" min="100" max="1000" 
+                                   value="{{ cement_rate if cement_rate else '450' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sand_rate" class="form-label">Sand Rate (₹/m³)</label>
+                            <input type="number" name="sand_rate" id="sand_rate" class="form-control" 
+                                   step="10" min="500" max="5000" 
+                                   value="{{ sand_rate if sand_rate else '1500' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="aggregate_rate" class="form-label">Aggregate Rate (₹/m³)</label>
+                            <input type="number" name="aggregate_rate" id="aggregate_rate" class="form-control" 
+                                   step="10" min="500" max="3000" 
+                                   value="{{ aggregate_rate if aggregate_rate else '1200' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="steel_rate" class="form-label">Steel Rate (₹/kg)</label>
+                            <input type="number" name="steel_rate" id="steel_rate" class="form-control" 
+                                   step="1" min="30" max="150" 
+                                   value="{{ steel_rate if steel_rate else '60' }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-calculator me-2"></i>
+                            Generate BOQ
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            {% if estimation %}
+            <!-- Results Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Project Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Floor Area:</strong> {{ estimation.dimensions.floor_area }} m²</p>
+                            <p><strong>Wall Area:</strong> {{ estimation.dimensions.wall_area }} m²</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Volume:</strong> {{ estimation.concrete.volume }} m³</p>
+                            <p><strong>Project Size:</strong> {{ estimation.dimensions.length }} × {{ estimation.dimensions.width }} × {{ estimation.dimensions.height }} m</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Quantities -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-boxes me-2"></i>
+                        Material Quantities
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-weight me-2"></i>Cement</h6>
+                                    <h4>{{ estimation.concrete.cement_bags }} bags</h4>
+                                    <small>{{ estimation.concrete.cement_bags * 50 }} kg total</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card bg-warning">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-mountain me-2"></i>Sand</h6>
+                                    <h4>{{ estimation.concrete.sand_volume }} m³</h4>
+                                    <small>Fine aggregate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card bg-secondary text-white">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-cubes me-2"></i>Aggregate</h6>
+                                    <h4>{{ estimation.concrete.aggregate_volume }} m³</h4>
+                                    <small>Coarse aggregate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-tools me-2"></i>Steel</h6>
+                                    <h4>{{ estimation.concrete.steel_weight }} kg</h4>
+                                    <small>Reinforcement bars</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-th-large me-2"></i>Bricks</h6>
+                                    <h4>{{ estimation.brickwork.bricks_required|int }}</h4>
+                                    <small>Standard size bricks</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-trowel me-2"></i>Mortar</h6>
+                                    <h4>{{ estimation.brickwork.mortar_volume }} m³</h4>
+                                    <small>For brick laying</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-rupee-sign me-2"></i>
+                        Cost Estimation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Quantity</th>
+                                    <th>Rate</th>
+                                    <th class="text-end">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><i class="fas fa-weight text-primary me-2"></i>Cement</td>
+                                    <td>{{ estimation.concrete.cement_bags }} bags</td>
+                                    <td>₹{{ cement_rate }}/bag</td>
+                                    <td class="text-end">₹{{ "{:,.2f}".format(estimation.costs.cement_cost) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-mountain text-warning me-2"></i>Sand</td>
+                                    <td>{{ estimation.concrete.sand_volume }} m³</td>
+                                    <td>₹{{ sand_rate }}/m³</td>
+                                    <td class="text-end">₹{{ "{:,.2f}".format(estimation.costs.sand_cost) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-cubes text-secondary me-2"></i>Aggregate</td>
+                                    <td>{{ estimation.concrete.aggregate_volume }} m³</td>
+                                    <td>₹{{ aggregate_rate }}/m³</td>
+                                    <td class="text-end">₹{{ "{:,.2f}".format(estimation.costs.aggregate_cost) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-tools text-danger me-2"></i>Steel</td>
+                                    <td>{{ estimation.concrete.steel_weight }} kg</td>
+                                    <td>₹{{ steel_rate }}/kg</td>
+                                    <td class="text-end">₹{{ "{:,.2f}".format(estimation.costs.steel_cost) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-th-large text-success me-2"></i>Bricks</td>
+                                    <td>{{ estimation.brickwork.bricks_required|int }} nos</td>
+                                    <td>₹8/brick</td>
+                                    <td class="text-end">₹{{ "{:,.2f}".format(estimation.costs.brick_cost) }}</td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <td><strong>Material Cost</strong></td>
+                                    <td colspan="2"></td>
+                                    <td class="text-end"><strong>₹{{ "{:,.2f}".format(estimation.costs.total_material_cost) }}</strong></td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td><strong>Labor Cost (40%)</strong></td>
+                                    <td colspan="2"></td>
+                                    <td class="text-end"><strong>₹{{ "{:,.2f}".format(estimation.costs.labor_cost) }}</strong></td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>Total Project Cost</strong></td>
+                                    <td colspan="2"></td>
+                                    <td class="text-end"><strong>₹{{ "{:,.2f}".format(estimation.costs.total_cost) }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info mt-3" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Estimation Notes
+                        </h6>
+                        <ul class="mb-0">
+                            <li>Costs are approximate and may vary based on local market rates</li>
+                            <li>Includes basic structural elements (slab, beams, columns, walls, foundation)</li>
+                            <li>Labor cost estimated at 40% of material cost</li>
+                            <li>Additional items like finishing, electrical, plumbing not included</li>
+                            <li>Recommended to add 10-15% contingency</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Instructions Card -->
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-clipboard-list fa-4x text-muted mb-4"></i>
+                    <h4>Generate Your BOQ</h4>
+                    <p class="text-muted mb-4">
+                        Enter your project dimensions and material rates to generate a detailed Bill of Quantities.
+                    </p>
+                    <div class="row text-start">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check text-success me-2"></i>Included Materials:</h6>
+                            <ul class="list-unstyled">
+                                <li>• Cement (bags)</li>
+                                <li>• Sand (cubic meters)</li>
+                                <li>• Aggregate (cubic meters)</li>
+                                <li>• Steel reinforcement (kg)</li>
+                                <li>• Bricks (numbers)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calculator text-info me-2"></i>Calculations Include:</h6>
+                            <ul class="list-unstyled">
+                                <li>• RCC structure quantities</li>
+                                <li>• Brick masonry work</li>
+                                <li>• Material and labor costs</li>
+                                <li>• Total project estimate</li>
+                                <li>• Detailed cost breakdown</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
