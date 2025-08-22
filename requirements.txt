@@ -19,3 +19,4 @@ flask-sqlalchemy
 flask-wtf
 sqlalchemy
 wtforms[email]
+psycopg2

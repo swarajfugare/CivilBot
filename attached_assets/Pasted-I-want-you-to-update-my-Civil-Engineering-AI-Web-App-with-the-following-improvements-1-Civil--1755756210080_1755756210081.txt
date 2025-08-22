@@ -1,0 +1,34 @@
+I want you to update my Civil Engineering AI Web App with the following improvements:
+
+### 1. Civil Engineering Features
+- **Unit Converter**: expand existing converter to support meters, feet, inches, cm, yards, miles, square feet, cubic meters, and tons.  
+- **Material Estimator**: user enters dimensions (wall, slab, etc.) and concrete mix ratio → AI calculates required cement, sand, aggregate, water, and reinforcement steel (approximate).  
+- **Cost Calculator**: allow users to input local material & labor rates → app estimates project cost.  
+- **Project Scheduler**: improve existing one → schedules should be saved in the database per user (linked to login). Enable users to download/export schedules as PDF/Excel.  
+- **Reports Generator**: AI should generate formatted reports like:  
+  - Daily Progress Report  
+  - Material Requirement Sheet  
+  - Project Schedule PDF  
+- **Knowledge Base**: add a simple "Learn Civil Engineering" section where AI answers from common IS codes/standards and best practices.  
+- **Dark/Light Theme Toggle**: add a toggle for UI between light and dark mode.  
+
+### 2. AI Chat Behavior
+- AI should use **conversation history** for answers (remember context within the chat session).  
+- AI should give **short, clear, main-point answers** instead of very long paragraphs.  
+- For longer explanations, add a **"More Details" button** that expands the response if the user wants.  
+
+### 3. UI/UX Updates
+- Update chatbot UI → add typing animation, bubble style for messages.  
+- Ensure font colors adapt properly:  
+  - On white backgrounds → black font  
+  - On dark backgrounds → white font  
+- Add developer credit in footer: "Developed by Swaraj Fugare" with a link to Instagram profile: [https://www.instagram.com/swaraj.fugare_23/](https://www.instagram.com/swaraj.fugare_23/).  
+- Set favicon of a construction helmet (use my existing favicon.ico file).  
+
+### 4. Login & User Data
+- Keep the simple login/register system.  
+- Ensure each user’s data (schedules, saved calculations, reports) is stored in DB and available after logout/login.  
+
+---
+
+Please update my app code with all of the above features and improvements.

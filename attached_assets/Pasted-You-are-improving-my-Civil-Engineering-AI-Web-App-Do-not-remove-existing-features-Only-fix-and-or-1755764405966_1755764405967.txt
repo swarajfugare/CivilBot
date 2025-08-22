@@ -1,0 +1,52 @@
+You are improving my Civil Engineering AI Web App. 
+Do not remove existing features. Only fix and organize the following:
+
+### 1. Fix AI Image Generator
+- Ensure the image generation using GROQ API works.  
+- Debug why it only shows "loading" and never displays the image.  
+- Correctly parse the GROQ API response and show the generated image in the UI.  
+- After generation:
+  - Display the image inside a card.  
+  - Add a "Download" button below the image.  
+  - Show error messages if something fails (e.g., invalid key, timeout).  
+
+### 2. Organize Pages
+- Make sure each page has a **clean layout** with proper headings.  
+- Keep a consistent navigation bar for:
+  - Home  
+  - Calculators  
+  - Safety  
+  - Scheduler  
+  - Chatbot  
+  - AI Image Generator  
+  - Plan Reader  
+  - About Us  
+- Each page should look separate, not mixed.
+
+### 3. Plan Reader (Enhanced)
+- On the **Plan Reader page**:
+  - Allow user to upload a building plan (image or PDF).  
+  - AI should read and summarize key details (rooms, dimensions, structure).  
+  - Add a **text area** where user can type specific questions about the uploaded plan (example: “How many rooms are in this plan?”).  
+  - AI should answer based on both the uploaded plan + user’s question.  
+  - Show the extracted info + Q&A neatly.  
+  - Add a small note: “AI interpretation may not be exact, please verify with an engineer.”  
+
+### 4. Theme Fix
+- Ensure **background and font colors always contrast**:  
+  - White background → black text.  
+  - Dark background → white text.  
+- Apply consistently across all pages.  
+- Fix buttons so they match theme and stay readable.
+
+### 5. General
+- Keep login/register, scheduler (DB persistence), calculators, and chatbot intact.  
+- Do not break existing APIs.  
+- Keep favicon and About Us page working.  
+
+Final result:  
+✅ Image generator loads and displays generated images correctly.  
+✅ Pages are organized with navbar and clean layout.  
+✅ Plan Reader allows upload + AI extraction + text Q&A.  
+✅ Theme is consistent and readable everywhere.  
+✅ Other features remain intact.

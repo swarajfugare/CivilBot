@@ -1,0 +1,79 @@
+You are updating my Civil Engineering AI Web App. 
+Do not change the color theme or remove existing features. 
+Only implement the fixes and new features listed below:
+
+---
+
+### 1. Fix Image Generator
+- Currently, when clicking “Generate Image” the page reloads with a `?` in the URL, and no image appears.  
+- Fix this issue so the page does not reload.  
+- Ensure the GROQ API is correctly called and the generated image displays in the result box.  
+- Add debugging:  
+  - Log API requests and errors in the browser console.  
+  - If an error occurs, show a clear UI error message: “Image generation failed. Please try again.”
+
+---
+
+### 2. Footer Fix
+- Add some **margin above the footer** so it does not stick directly to content.  
+- Ensure there is **padding inside the footer** so elements are not stuck together.  
+- Add a button linking to my Instagram profile in the footer.  
+- Keep the footer professional and responsive.  
+- Keep developer name text: “Developed by Swaraj Fugare”.
+
+---
+
+### 3. Account Page – Edit Profile
+- On the **Account Page**, make the “Edit Profile” button functional.  
+- Allow editing of:  
+  - Username  
+  - Name  
+  - Password  
+- Do **not** allow editing of email.  
+- Show a save button to update the changes (local update is fine).  
+
+---
+
+### 4. Chat AI Page
+- AI answers should appear in a **black box with white font**.  
+- Currently, after refresh the box turns white background with black font.  
+- Fix so the style **always remains black background with white text**.  
+- Add a feature to **upload an image to the chatbot**:  
+  - User can upload an image.  
+  - AI analyzes the image and answers user questions about it.  
+
+---
+
+### 5. Safety Page Fix
+- In the Safety Page:  
+  - **Recommended Actions** currently shows empty. Fix it so it displays AI-generated recommended actions from the safety analysis.  
+  - **AI Safety Analysis Report** is too long:  
+    - First show a **short summary** (a few lines).  
+    - Then allow user to expand to see the **detailed full report**.  
+    - Display the report in a **fixed-height scrollable box** to save space.
+
+---
+
+### 6. Plan Reader Page
+- If no plan image is uploaded, show error message:  
+  “Please upload a building plan image to get the analysis report.”  
+- The plan report should:  
+  - Show a **short summary** first (final plan report).  
+  - Then allow scrolling to view the **detailed full report**.  
+  - Report box must be scrollable (fixed size).  
+- Add a message:  
+  “For any issues or feedback, please DM the developer on Instagram.”  
+
+---
+
+### Rules
+- Do not change the site’s color theme.  
+- Do not remove or break any existing feature.  
+- Only implement the fixes and features listed above.  
+
+---
+
+### Bot Rename
+- Rename the chatbot with a professional but friendly new name:  
+  **“StructuraAI”**  
+  (represents structural + architecture AI, short, modern, and strong).  

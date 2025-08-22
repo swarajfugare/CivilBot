@@ -7,7 +7,7 @@ import base64
 from app import app, db
 from civil_ai import CivilAI
 from calculators import StructuralCalculator, MaterialEstimator, ProjectScheduler
-from models import User, ChatHistory, ProjectSchedule
+from models import User, ChatHistory, ProjectSchedule, GeneratedImage
 import json
 from forms import LoginForm, RegistrationForm, UnitConverterForm, MaterialEstimatorForm
 
@@ -93,8 +93,12 @@ def api_chat():
         if not user_message:
             return jsonify({'error': 'Please enter a message'}), 400
         
-        # Get AI response
-        ai_response = civil_ai.get_civil_engineering_response(user_message)
+        # Get conversation history for context
+        recent_history = ChatHistory.query.filter_by(user_id=current_user.id).order_by(ChatHistory.created_at.desc()).limit(5).all()
+        recent_history.reverse()  # Chronological order
+        
+        # Get AI response with context
+        ai_response = civil_ai.get_civil_engineering_response(user_message, recent_history)
         
         # Store in database
         chat_record = ChatHistory(
@@ -305,6 +309,56 @@ def about():
     """About page with app information"""
     return render_template('about.html')
 
+@app.route('/account')
+@login_required
+def account():
+    """User account page"""
+    return render_template('account.html')
+
+@app.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    """Edit user profile"""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        name = request.form.get('name')
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate username
+        if username != current_user.username:
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                flash('Username already exists.', 'error')
+                return render_template('edit_profile.html')
+            current_user.username = username
+        
+        # Update name
+        current_user.name = name if name else None
+        
+        # Handle password change
+        if new_password:
+            if not current_password:
+                flash('Please enter your current password to change it.', 'error')
+                return render_template('edit_profile.html')
+            
+            if not current_user.check_password(current_password):
+                flash('Current password is incorrect.', 'error')
+                return render_template('edit_profile.html')
+            
+            if new_password != confirm_password:
+                flash('New passwords do not match.', 'error')
+                return render_template('edit_profile.html')
+            
+            current_user.set_password(new_password)
+        
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('account'))
+    
+    return render_template('edit_profile.html')
+
 @app.route('/clear-chat')
 @login_required
 def clear_chat():
@@ -461,20 +515,20 @@ def unit_converter():
         conversion_type = form.conversion_type.data
         
         if conversion_type == 'length':
-            form.from_unit.choices = [('m', 'Meters'), ('ft', 'Feet'), ('mm', 'Millimeters'), ('cm', 'Centimeters'), ('km', 'Kilometers')]
-            form.to_unit.choices = [('m', 'Meters'), ('ft', 'Feet'), ('mm', 'Millimeters'), ('cm', 'Centimeters'), ('km', 'Kilometers')]
+            form.from_unit.choices = [('m', 'Meters'), ('ft', 'Feet'), ('in', 'Inches'), ('cm', 'Centimeters'), ('mm', 'Millimeters'), ('km', 'Kilometers'), ('yd', 'Yards'), ('mi', 'Miles')]
+            form.to_unit.choices = [('m', 'Meters'), ('ft', 'Feet'), ('in', 'Inches'), ('cm', 'Centimeters'), ('mm', 'Millimeters'), ('km', 'Kilometers'), ('yd', 'Yards'), ('mi', 'Miles')]
         elif conversion_type == 'weight':
-            form.from_unit.choices = [('kg', 'Kilograms'), ('ton', 'Tons'), ('g', 'Grams'), ('lb', 'Pounds')]
-            form.to_unit.choices = [('kg', 'Kilograms'), ('ton', 'Tons'), ('g', 'Grams'), ('lb', 'Pounds')]
+            form.from_unit.choices = [('kg', 'Kilograms'), ('ton', 'Metric Tons'), ('g', 'Grams'), ('lb', 'Pounds'), ('oz', 'Ounces')]
+            form.to_unit.choices = [('kg', 'Kilograms'), ('ton', 'Metric Tons'), ('g', 'Grams'), ('lb', 'Pounds'), ('oz', 'Ounces')]
         elif conversion_type == 'area':
-            form.from_unit.choices = [('sqm', 'Square Meters'), ('sqft', 'Square Feet'), ('acre', 'Acres'), ('hectare', 'Hectares')]
-            form.to_unit.choices = [('sqm', 'Square Meters'), ('sqft', 'Square Feet'), ('acre', 'Acres'), ('hectare', 'Hectares')]
+            form.from_unit.choices = [('sqm', 'Square Meters'), ('sqft', 'Square Feet'), ('sqin', 'Square Inches'), ('acre', 'Acres'), ('hectare', 'Hectares')]
+            form.to_unit.choices = [('sqm', 'Square Meters'), ('sqft', 'Square Feet'), ('sqin', 'Square Inches'), ('acre', 'Acres'), ('hectare', 'Hectares')]
         elif conversion_type == 'volume':
-            form.from_unit.choices = [('cum', 'Cubic Meters'), ('cuft', 'Cubic Feet'), ('liter', 'Liters')]
-            form.to_unit.choices = [('cum', 'Cubic Meters'), ('cuft', 'Cubic Feet'), ('liter', 'Liters')]
+            form.from_unit.choices = [('cum', 'Cubic Meters'), ('cuft', 'Cubic Feet'), ('liter', 'Liters'), ('gallon', 'Gallons')]
+            form.to_unit.choices = [('cum', 'Cubic Meters'), ('cuft', 'Cubic Feet'), ('liter', 'Liters'), ('gallon', 'Gallons')]
         elif conversion_type == 'pressure':
-            form.from_unit.choices = [('nmm2', 'N/mm²'), ('psi', 'PSI'), ('mpa', 'MPa'), ('bar', 'Bar')]
-            form.to_unit.choices = [('nmm2', 'N/mm²'), ('psi', 'PSI'), ('mpa', 'MPa'), ('bar', 'Bar')]
+            form.from_unit.choices = [('nmm2', 'N/mm²'), ('psi', 'PSI'), ('mpa', 'MPa'), ('bar', 'Bar'), ('kpa', 'kPa')]
+            form.to_unit.choices = [('nmm2', 'N/mm²'), ('psi', 'PSI'), ('mpa', 'MPa'), ('bar', 'Bar'), ('kpa', 'kPa')]
         
         if form.validate_on_submit():
             result = convert_units(form.value.data, form.from_unit.data, form.to_unit.data, conversion_type)
@@ -496,6 +550,46 @@ def material_estimator_route():
     
     return render_template('material_estimator.html', form=form, result=result)
 
+@app.route('/cost-calculator', methods=['GET', 'POST'])
+@login_required
+def cost_calculator():
+    """Construction Cost Calculator"""
+    cost_estimation = None
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            project_type = request.form.get('project_type')
+            area = float(request.form.get('area', 0))
+            floors = int(request.form.get('floors', 1))
+            
+            # Material rates
+            cement_rate = float(request.form.get('cement_rate', 450))
+            sand_rate = float(request.form.get('sand_rate', 1500))
+            aggregate_rate = float(request.form.get('aggregate_rate', 1200))
+            steel_rate = float(request.form.get('steel_rate', 60))
+            brick_rate = float(request.form.get('brick_rate', 5000))
+            labor_rate = float(request.form.get('labor_rate', 80))
+            other_costs = float(request.form.get('other_costs', 50))
+            
+            if area <= 0:
+                flash('Please enter valid area', 'warning')
+                return redirect(url_for('cost_calculator'))
+            
+            # Calculate costs
+            cost_estimation = calculate_project_cost(
+                project_type, area, floors, cement_rate, sand_rate, 
+                aggregate_rate, steel_rate, brick_rate, labor_rate, other_costs
+            )
+            
+        except ValueError:
+            flash('Please enter valid numeric values', 'error')
+        except Exception as e:
+            logging.error(f"Cost calculation error: {str(e)}")
+            flash(f'Cost calculation error: {str(e)}', 'error')
+    
+    return render_template('cost_calculator.html', cost_estimation=cost_estimation)
+
 def convert_units(value, from_unit, to_unit, conversion_type):
     """Convert units based on type and return result"""
     try:
@@ -504,24 +598,36 @@ def convert_units(value, from_unit, to_unit, conversion_type):
             # Convert to meters first
             if from_unit == 'ft':
                 value_in_m = value / 3.28084
+            elif from_unit == 'in':
+                value_in_m = value / 39.3701
             elif from_unit == 'mm':
                 value_in_m = value / 1000
             elif from_unit == 'cm':
                 value_in_m = value / 100
             elif from_unit == 'km':
                 value_in_m = value * 1000
+            elif from_unit == 'yd':
+                value_in_m = value / 1.09361
+            elif from_unit == 'mi':
+                value_in_m = value * 1609.34
             else:  # meters
                 value_in_m = value
                 
             # Convert from meters to target unit
             if to_unit == 'ft':
                 result_value = value_in_m * 3.28084
+            elif to_unit == 'in':
+                result_value = value_in_m * 39.3701
             elif to_unit == 'mm':
                 result_value = value_in_m * 1000
             elif to_unit == 'cm':
                 result_value = value_in_m * 100
             elif to_unit == 'km':
                 result_value = value_in_m / 1000
+            elif to_unit == 'yd':
+                result_value = value_in_m * 1.09361
+            elif to_unit == 'mi':
+                result_value = value_in_m / 1609.34
             else:  # meters
                 result_value = value_in_m
                 
@@ -534,6 +640,8 @@ def convert_units(value, from_unit, to_unit, conversion_type):
                 value_in_kg = value / 1000
             elif from_unit == 'lb':
                 value_in_kg = value / 2.20462
+            elif from_unit == 'oz':
+                value_in_kg = value / 35.274
             else:  # kg
                 value_in_kg = value
                 
@@ -544,6 +652,8 @@ def convert_units(value, from_unit, to_unit, conversion_type):
                 result_value = value_in_kg * 1000
             elif to_unit == 'lb':
                 result_value = value_in_kg * 2.20462
+            elif to_unit == 'oz':
+                result_value = value_in_kg * 35.274
             else:  # kg
                 result_value = value_in_kg
                 
@@ -619,6 +729,73 @@ def convert_units(value, from_unit, to_unit, conversion_type):
         
     except Exception as e:
         logging.error(f"Unit conversion error: {str(e)}")
+        return {'error': str(e)}
+
+def calculate_project_cost(project_type, area, floors, cement_rate, sand_rate, aggregate_rate, steel_rate, brick_rate, labor_rate, other_costs):
+    """Calculate project cost based on type and rates"""
+    try:
+        total_area = area * floors
+        
+        # Project type multipliers for material quantities
+        type_multipliers = {
+            'residential_building': {'cement': 1.0, 'steel': 1.0, 'brick': 1.0, 'labor': 1.0},
+            'commercial_building': {'cement': 1.2, 'steel': 1.3, 'brick': 0.8, 'labor': 1.1},
+            'road_construction': {'cement': 0.8, 'steel': 0.3, 'brick': 0.0, 'labor': 0.9},
+            'bridge_construction': {'cement': 1.5, 'steel': 2.0, 'brick': 0.0, 'labor': 1.4},
+            'foundation_only': {'cement': 0.6, 'steel': 0.8, 'brick': 0.0, 'labor': 0.7}
+        }
+        
+        multiplier = type_multipliers.get(project_type, type_multipliers['residential_building'])
+        
+        # Calculate material quantities (per sq ft)
+        cement_bags = (total_area * 0.4) * multiplier['cement']  # bags
+        sand_cum = (total_area * 0.02) * multiplier['cement']  # cubic meters
+        aggregate_cum = (total_area * 0.04) * multiplier['cement']  # cubic meters
+        steel_kg = (total_area * 4.5) * multiplier['steel']  # kg
+        bricks = (total_area * 35) * multiplier['brick']  # nos
+        
+        # Calculate costs
+        cement_cost = cement_bags * cement_rate
+        sand_cost = sand_cum * sand_rate
+        aggregate_cost = aggregate_cum * aggregate_rate
+        steel_cost = steel_kg * steel_rate
+        brick_cost = (bricks / 1000) * brick_rate
+        labor_cost = total_area * labor_rate * multiplier['labor']
+        other_cost = total_area * other_costs
+        
+        material_cost = cement_cost + sand_cost + aggregate_cost + steel_cost + brick_cost
+        total_cost = material_cost + labor_cost + other_cost
+        
+        # Get AI analysis
+        ai_analysis = civil_ai.analyze_project_cost({
+            'project_type': project_type,
+            'area': total_area,
+            'total_cost': total_cost,
+            'cost_per_sqft': total_cost / total_area
+        })
+        
+        return {
+            'project_type': project_type,
+            'area': area,
+            'floors': floors,
+            'total_area': total_area,
+            'material_cost': material_cost,
+            'labor_cost': labor_cost,
+            'other_cost': other_cost,
+            'total_cost': total_cost,
+            'cost_per_sqft': total_cost / total_area,
+            'material_breakdown': {
+                'cement': {'quantity': round(cement_bags, 2), 'unit': 'bags', 'rate': cement_rate, 'cost': cement_cost},
+                'sand': {'quantity': round(sand_cum, 3), 'unit': 'm³', 'rate': sand_rate, 'cost': sand_cost},
+                'aggregate': {'quantity': round(aggregate_cum, 3), 'unit': 'm³', 'rate': aggregate_rate, 'cost': aggregate_cost},
+                'steel': {'quantity': round(steel_kg, 2), 'unit': 'kg', 'rate': steel_rate, 'cost': steel_cost},
+                'bricks': {'quantity': int(bricks), 'unit': 'nos', 'rate': f'{brick_rate}/1000', 'cost': brick_cost}
+            },
+            'ai_analysis': ai_analysis
+        }
+        
+    except Exception as e:
+        logging.error(f"Cost calculation error: {str(e)}")
         return {'error': str(e)}
 
 def estimate_materials(area, construction_type):
@@ -721,6 +898,80 @@ def estimate_materials(area, construction_type):
     except Exception as e:
         logging.error(f"Material estimation error: {str(e)}")
         return {'error': str(e)}
+
+@app.route('/knowledge-base')
+def knowledge_base():
+    """Civil Engineering Knowledge Base"""
+    return render_template('knowledge_base.html')
+
+@app.route('/api/knowledge', methods=['POST'])
+def api_knowledge():
+    """API endpoint for knowledge base queries"""
+    try:
+        data = request.get_json()
+        query = data.get('query', '').strip()
+        
+        if not query:
+            return jsonify({'error': 'Please enter a query'}), 400
+        
+        # Get knowledge base response
+        response = civil_ai.get_knowledge_base_response(query)
+        
+        return jsonify({
+            'success': True,
+            'response': response,
+            'query': query
+        })
+        
+    except Exception as e:
+        logging.error(f"Knowledge base error: {str(e)}")
+        return jsonify({'error': f'Knowledge base error: {str(e)}'}), 500
+
+
+
+@app.route('/plan-reader')
+@login_required
+def plan_reader():
+    """Building Plan Reader page"""
+    return render_template('plan_reader.html')
+
+@app.route('/plan-reader', methods=['POST'])
+@login_required
+def plan_reader_post():
+    """Handle building plan upload and analysis"""
+    try:
+        if 'plan_file' not in request.files:
+            flash('No file selected', 'warning')
+            return redirect(url_for('plan_reader'))
+        
+        file = request.files['plan_file']
+        
+        if file.filename == '':
+            flash('No file selected', 'warning')
+            return redirect(url_for('plan_reader'))
+        
+        if file and (allowed_file(file.filename) or file.filename.lower().endswith('.pdf')):
+            filename = secure_filename(file.filename)
+            
+            # Read and encode file
+            file_data = file.read()
+            base64_file = base64.b64encode(file_data).decode('utf-8')
+            
+            # Get specific question if provided
+            specific_question = request.form.get('plan_question', '').strip()
+            
+            # Get AI analysis of the building plan
+            analysis = civil_ai.analyze_building_plan(base64_file, filename, specific_question)
+            
+            return render_template('plan_reader.html', analysis=analysis, filename=filename)
+        else:
+            flash('Invalid file format. Please upload an image file (PNG, JPG, JPEG) or PDF', 'error')
+            
+    except Exception as e:
+        logging.error(f"Plan analysis error: {str(e)}")
+        flash(f'Plan analysis error: {str(e)}', 'error')
+    
+    return redirect(url_for('plan_reader'))
 
 @app.route('/api/steel-weight', methods=['POST'])
 def api_steel_weight():

@@ -29,6 +29,22 @@ database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     # Fallback to SQLite for local development or when DATABASE_URL is not set
     database_url = "sqlite:///civilbot.db"
+else:
+    # For PostgreSQL connections, add endpoint parameter if not already present
+    if database_url.startswith(("postgresql://", "postgres://")) and "options=endpoint" not in database_url:
+        # Extract endpoint ID from the host (first part before the dot)
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        parsed = urlparse(database_url)
+        if parsed.hostname and "." in parsed.hostname:
+            endpoint_id = parsed.hostname.split('.')[0]
+            # Add endpoint parameter to the query string
+            query_params = parse_qs(parsed.query) if parsed.query else {}
+            query_params['options'] = [f'endpoint={endpoint_id}']
+            new_query = urlencode(query_params, doseq=True)
+            database_url = urlunparse((
+                parsed.scheme, parsed.netloc, parsed.path,
+                parsed.params, new_query, parsed.fragment
+            ))
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -66,7 +82,7 @@ def load_user(user_id):
 
 # Create database tables
 with app.app_context():
-    from models import User, ChatHistory
+    from models import User, ChatHistory, ProjectSchedule, GeneratedImage
     db.create_all()
     logging.info("Database tables created")
 
@@ -74,4 +90,4 @@ with app.app_context():
 from routes import *
 
 # Log startup information
-logging.info("CivilBot Assistant application started successfully")
+logging.info("ConstructIQ Assistant application started successfully")

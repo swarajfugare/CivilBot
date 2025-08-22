@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Plan Reader - CivilBot Assistant{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white text-center">
+                    <h3><i class="fas fa-drafting-compass"></i> Building Plan Reader</h3>
+                    <p class="mb-0">Upload and analyze building plans using AI</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="planAnalysisForm">
+                        <div class="mb-3">
+                            <label for="plan_file" class="form-label">Upload Building Plan:</label>
+                            <input type="file" name="plan_file" id="plan_file" class="form-control" 
+                                   accept=".png,.jpg,.jpeg,.pdf" required>
+                            <div class="form-text">Supported formats: PNG, JPG, JPEG, PDF</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="plan_question" class="form-label">Specific Question About Plan:</label>
+                            <textarea name="plan_question" id="plan_question" class="form-control" rows="3"
+                                   placeholder="Ask specific questions about the plan (e.g., What is the total built-up area? Are there any structural issues?)"></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search me-2"></i>
+                                Analyze Plan
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="errorMessage" class="alert alert-danger mt-3 d-none">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Upload Required</h5>
+                        <p>Please upload a building plan image or PDF file before analyzing.</p>
+                    </div>
+
+                    <!-- Analysis Results -->
+                    {% if analysis %}
+                    <div class="card mt-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5><i class="fas fa-clipboard-check me-2"></i>Building Plan Analysis</h5>
+                            {% if filename %}
+                            <small>File: {{ filename }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-success">
+                                <h6><strong><i class="fas fa-check-circle me-2"></i>Final Plan Report:</strong></h6>
+                                <p class="mb-0">{{ analysis.split('\n')[0] if analysis.split('\n') else analysis[:200] + '...' }}</p>
+                            </div>
+
+                            <h6><strong>Detailed Analysis Report:</strong></h6>
+                            <div class="analysis-content border rounded p-3 mb-3" style="max-height: 500px; overflow-y: auto; background-color: #343a40;">
+                                {{ analysis|nl2br|safe }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-center">
+                        <p class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            For any problems during use, contact the developer via Instagram DM.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Information Card -->
+                    <div class="card border-warning mt-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h6><i class="fas fa-info-circle"></i> How Plan Reading Works</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                <li><strong>Upload your plan:</strong> JPG, PNG, or PDF format</li>
+                                <li><strong>AI Analysis:</strong> Our AI examines structural elements, room layouts, and dimensions</li>
+                                <li><strong>Detailed Report:</strong> Get insights on rooms, structure, and construction details</li>
+                                <li><strong>Safety Check:</strong> Receive recommendations for compliance and safety</li>
+                            </ul>
+
+                            <div class="alert alert-danger mt-3 mb-0">
+                                <strong><i class="fas fa-exclamation-triangle"></i> Important Disclaimer:</strong>
+                                AI interpretations may not be exact and should not replace professional engineering analysis. 
+                                Always verify structural calculations and design decisions with a qualified structural engineer.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample Plans Guide -->
+                    <div class="card border-secondary mt-4">
+                        <div class="card-header bg-secondary text-white">
+                            <h6><i class="fas fa-lightbulb"></i> Tips for Better Analysis</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Upload Quality:</h6>
+                                    <ul class="small">
+                                        <li>High resolution images work better</li>
+                                        <li>Ensure text and dimensions are readable</li>
+                                        <li>Good lighting and contrast</li>
+                                        <li>Avoid blurry or rotated images</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Plan Types Supported:</h6>
+                                    <ul class="small">
+                                        <li>Floor plans</li>
+                                        <li>Structural drawings</li>
+                                        <li>Foundation plans</li>
+                                        <li>Elevation drawings</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.analysis-content {
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.analysis-content h1, .analysis-content h2, .analysis-content h3 {
+    color: var(--text-primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-content ul, .analysis-content ol {
+    margin-left: 1rem;
+}
+
+.analysis-content strong {
+    color: var(--text-primary);
+}
+</style>
+{% endblock %}

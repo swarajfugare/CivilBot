@@ -1,0 +1,44 @@
+Update my project with the following changes only, do not modify or remove any other features or files:
+
+1. Image Generator:
+   - Fix the issue where clicking "Generate Image" reloads the page and shows nothing.  
+   - Ensure image generation works correctly and any errors are logged in the console for debugging.  
+   - Prevent the page from reloading on button click.  
+
+2. Footer:
+   - Add a small top margin above the footer so it doesn’t stick directly to page content.  
+   - Add spacing inside the footer so its parts are not stuck together.  
+   - Keep the existing footer design, but add:
+     - A button/link to my Instagram profile.
+     - Developer name mention.
+     - Ensure footer stays fixed at bottom when page is small.
+
+3. Edit Profile Page:
+   - Enable editing of username, name, and password only (do NOT allow editing email or other fields).  
+
+4. Chat AI Page:
+   - AI answers should display in a **black box with white font** consistently, and keep the style even after refresh.  
+   - Add an **upload image small icon** in front of the chat input box, so user can upload an image and ask questions about it.  
+   - Pressing Enter should send the message.  
+   - Ensure answers are shown short + main points first, but also allow scrollable detailed answers when long.  
+
+5. Site Safety Page:
+   - Fix issue where **Recommended Actions** is empty → always show proper actions returned from AI.  
+   - Change the **AI Safety Analysis Report** display:
+     - Show only a short summary/few lines first as the "Final Report".  
+     - Add a scrollable box below it with the full detailed report, instead of making a very long box.  
+
+6. Plan Reader Page:
+   - If no plan image is uploaded, show an error message telling the user to upload a plan image.  
+   - The generated report should display:
+     - A short summary (final plan report) at the top.  
+     - A scrollable box with the detailed full report below it.  
+   - Add a text area for users to ask questions about specific points in the plan.  
+   - Add a note: “For any problems during use, contact the developer via Instagram DM.”  
+
+7. General:
+   - In any place where reports or AI answers are long, display them in a **scrollable box** to save page space.  
+   - Do not modify color theme or other existing features. Only apply the above changes.
+
+Finally, update the bot name to a better professional name:
+**New Bot Name → "BuildMate AI"**

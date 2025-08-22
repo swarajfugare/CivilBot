@@ -96,55 +96,40 @@
         <div class="col-lg-6">
             {% if analysis %}
             <!-- Analysis Results -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-brain me-2"></i>
-                        AI Safety Analysis Report
-                    </h5>
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-shield-alt me-2"></i>AI Safety Analysis Report</h5>
                 </div>
                 <div class="card-body">
-                    <div class="analysis-content">
-                        {{ analysis|nl2br }}
+                    <div class="mb-3">
+                        <p><strong>Summary:</strong> {{ analysis.split('.')[0] }}. {{ analysis.split('.')[1] if analysis.split('.')|length > 1 else '' }}</p>
+                    </div>
+
+                    <h6><strong>Detailed Analysis:</strong></h6>
+                    <div class="analysis-content border rounded p-3" style="max-height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+                        {{ analysis|nl2br|safe }}
+                    </div>
+
+                    <div class="mt-3">
+                        <h6><strong>Recommended Actions:</strong></h6>
+                        <div class="alert alert-warning">
+                            <ul class="mb-0">
+                                <li>Ensure all workers wear appropriate PPE</li>
+                                <li>Conduct regular safety inspections</li>
+                                <li>Maintain proper housekeeping standards</li>
+                                <li>Check equipment safety compliance</li>
+                                <li>Verify emergency procedures are in place</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Action Items -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-tasks me-2"></i>
-                        Recommended Actions
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Next Steps
-                        </h6>
-                        <ul class="mb-0">
-                            <li>Review the AI analysis findings above</li>
-                            <li>Address any immediate safety concerns</li>
-                            <li>Implement recommended safety measures</li>
-                            <li>Conduct regular safety inspections</li>
-                            <li>Train workers on safety protocols</li>
-                            <li>Document corrective actions taken</li>
-                        </ul>
-                    </div>
-
-                    <div class="alert alert-warning" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Important Note
-                        </h6>
-                        <p class="mb-0">
-                            This AI analysis is for guidance only and does not replace professional safety inspections. 
-                            Always consult with qualified safety professionals and follow local safety regulations.
-                        </p>
-                    </div>
-                </div>
+            <div class="mt-3 text-center">
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    For any problems during use, contact the developer via Instagram DM.
+                </p>
             </div>
             {% else %}
             <!-- Instructions Card -->

@@ -1,0 +1,6 @@
+ id |   username   |           email            |                        password_hash                         |         created_at         | is_active 
+----+--------------+----------------------------+--------------------------------------------------------------+----------------------------+-----------
+  1 | swarajfugare | fugaresadhana286@gmail.com | $2b$12$YRsfYUJpjbkC.SEQALWzEepLn/6hQChIZ5yBsBFJw2Tl8Qpc8Vb0a | 2025-08-20 14:33:30.877137 | t
+  2 | asdf         | asd@fd.dsf                 | $2b$12$y1w.5OzOszGmPALX2ZdYAuirP5V0PCMj09gQhKmdXKTvTxmqz/FWW | 2025-08-21 06:10:49.256769 | t
+(2 rows)
+

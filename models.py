@@ -19,6 +19,9 @@ class User(UserMixin, db.Model):
     # Relationship with project schedules
     project_schedules = db.relationship('ProjectSchedule', backref='user', lazy=True, cascade='all, delete-orphan')
     
+    # Relationship with generated images
+    generated_images = db.relationship('GeneratedImage', backref='user', lazy=True, cascade='all, delete-orphan')
+    
     def set_password(self, password):
         """Hash and set password"""
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -57,3 +60,18 @@ class ProjectSchedule(db.Model):
     
     def __repr__(self):
         return f'<ProjectSchedule {self.id} - {self.schedule_name}>'
+
+class GeneratedImage(db.Model):
+    """Model to store AI generated images"""
+    __tablename__ = 'generated_images'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    prompt = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.String(500))  # URL or path to generated image
+    image_data = db.Column(db.Text)  # Base64 encoded image data
+    filename = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<GeneratedImage {self.id} - User {self.user_id}>'

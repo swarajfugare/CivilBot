@@ -1,6 +1,7 @@
+
 {% extends "base.html" %}
 
-{% block title %}Home - CivilAI Assistant{% endblock %}
+{% block title %}Home - ConstructIQ Assistant{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -19,7 +20,7 @@
             {% else %}
             <h1 class="display-4 mb-4">
                 <i class="fas fa-hard-hat text-primary me-3"></i>
-                Welcome to CivilAI Assistant
+                Welcome to ConstructIQ
             </h1>
             <p class="lead mb-4">
                 Your intelligent companion for civil engineering design, estimation, and site safety. 
@@ -44,6 +45,34 @@
         </div>
     </div>
 
+    <!-- Key Benefits Section -->
+    <div class="row mb-5 py-4" style="background: linear-gradient(135deg, #343a40 0%, #343a40 100%); border-radius: 15px;">
+        <div class="col-12 text-center mb-4">
+            <h2><i class="fas fa-star text-warning me-2"></i>Why Choose ConstructIQ?</h2>
+        </div>
+        <div class="col-md-4 text-center mb-3">
+            <div class="p-3">
+                <i class="fas fa-clock fa-3x mb-3 text-primary"></i>
+                <h5>Save Time</h5>
+                <p>Get instant answers to complex engineering questions without manual calculations.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-3">
+            <div class="p-3">
+                <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                <h5>Accurate Results</h5>
+                <p>AI-powered calculations based on standard engineering practices and IS codes.</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-3">
+            <div class="p-3">
+                <i class="fas fa-users fa-3x mb-3 text-info"></i>
+                <h5>Easy to Use</h5>
+                <p>Intuitive interface designed specifically for civil engineers and construction professionals.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Features Section -->
     <div class="row mb-5">
         <div class="col-12">
@@ -56,7 +85,7 @@
     <div class="row g-4 mb-5">
         <!-- AI Chat Assistant -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="fas fa-comments fa-3x text-primary"></i>
@@ -75,7 +104,7 @@
 
         <!-- Structural Calculator -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="fas fa-calculator fa-3x text-success"></i>
@@ -94,7 +123,7 @@
 
         <!-- Material Estimation -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="fas fa-clipboard-list fa-3x text-info"></i>
@@ -113,7 +142,7 @@
 
         <!-- Project Scheduler -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="fas fa-calendar-alt fa-3x text-warning"></i>
@@ -132,7 +161,7 @@
 
         <!-- Safety Analysis -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="fas fa-shield-alt fa-3x text-danger"></i>
@@ -149,47 +178,147 @@
             </div>
         </div>
 
-        <!-- About -->
+        <!-- Knowledge Base -->
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
-                        <i class="fas fa-info-circle fa-3x text-secondary"></i>
+                        <i class="fas fa-book fa-3x text-secondary"></i>
                     </div>
-                    <h5 class="card-title">Learn More</h5>
+                    <h5 class="card-title">Knowledge Base</h5>
                     <p class="card-text">
-                        Discover how CivilAI Assistant can transform your engineering workflow 
-                        and boost productivity.
+                        Access comprehensive civil engineering knowledge, IS codes, and technical references.
                     </p>
-                    <a href="{{ url_for('about') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-right me-1"></i>About
+                    <a href="{{ url_for('knowledge_base') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right me-1"></i>Explore
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Benefits Section -->
-    <div class="row py-5 bg-dark rounded">
+    <!-- Advanced Tools Section -->
+    <div class="row mb-5">
         <div class="col-12">
-            <h3 class="text-center mb-4 text-light">
-                <i class="fas fa-star me-2"></i>Why Choose CivilAI?
+            <h2 class="text-center mb-5">
+                <i class="fas fa-tools me-2"></i>Advanced Engineering Tools
+            </h2>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-cube fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Concrete Calculator</h5>
+                    <p class="card-text">Calculate concrete mix ratios, quantities, and material requirements for various grades.</p>
+                    <a href="{{ url_for('concrete_calculator') }}" class="btn btn-outline-primary">Calculate Mix</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-weight-hanging fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Steel Weight Calculator</h5>
+                    <p class="card-text">Calculate steel reinforcement weights for different bar sizes and lengths.</p>
+                    <a href="{{ url_for('steel_calculator') }}" class="btn btn-outline-success">Calculate Steel</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-exchange-alt fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Unit Converter</h5>
+                    <p class="card-text">Convert between different engineering units including length, area, volume, and pressure.</p>
+                    <a href="{{ url_for('unit_converter') }}" class="btn btn-outline-info">Convert Units</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-calculator fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Material Estimator</h5>
+                    <p class="card-text">Estimate material quantities for walls, slabs, foundations, and other construction elements.</p>
+                    <a href="{{ url_for('material_estimator_route') }}" class="btn btn-outline-warning">Estimate Materials</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-money-bill-wave fa-3x text-danger mb-3"></i>
+                    <h5 class="card-title">Cost Calculator</h5>
+                    <p class="card-text">Calculate project costs with detailed material and labor cost breakdowns.</p>
+                    <a href="{{ url_for('cost_calculator') }}" class="btn btn-outline-danger">Calculate Costs</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-secondary">
+                <div class="card-body text-center">
+                    <i class="fas fa-drafting-compass fa-3x text-secondary mb-3"></i>
+                    <h5 class="card-title">Plan Reader</h5>
+                    <p class="card-text">Upload and analyze building plans with AI-powered interpretation and insights.</p>
+                    <a href="{{ url_for('plan_reader') }}" class="btn btn-outline-secondary">Analyze Plans</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engineering Standards Section -->
+    <div class="row py-5 mb-5" style="background: linear-gradient(135deg, #343a40 0%, #495057 100%); border-radius: 15px;">
+        <div class="col-12 text-center mb-4">
+            <h3 class="text-white mb-4">
+                <i class="fas fa-certificate me-2"></i>Built on Industry Standards
             </h3>
         </div>
-        <div class="col-md-4 text-center text-light">
-            <i class="fas fa-clock fa-2x mb-3 text-primary"></i>
-            <h5>Save Time</h5>
-            <p>Get instant answers to complex engineering questions without manual calculations.</p>
+        <div class="col-md-3 text-center text-white mb-3">
+            <i class="fas fa-book fa-2x mb-2 text-primary"></i>
+            <h6>IS Codes Compliant</h6>
+            <small>Following Indian Standard codes</small>
         </div>
-        <div class="col-md-4 text-center text-light">
-            <i class="fas fa-check-circle fa-2x mb-3 text-success"></i>
-            <h5>Accurate Results</h5>
-            <p>AI-powered calculations based on standard engineering practices and IS codes.</p>
+        <div class="col-md-3 text-center text-white mb-3">
+            <i class="fas fa-shield-alt fa-2x mb-2 text-success"></i>
+            <h6>Safety First</h6>
+            <small>Prioritizing structural safety</small>
         </div>
-        <div class="col-md-4 text-center text-light">
-            <i class="fas fa-users fa-2x mb-3 text-info"></i>
-            <h5>Easy to Use</h5>
-            <p>Intuitive interface designed specifically for civil engineers and construction professionals.</p>
+        <div class="col-md-3 text-center text-white mb-3">
+            <i class="fas fa-cog fa-2x mb-2 text-warning"></i>
+            <h6>Accurate Calculations</h6>
+            <small>Precise engineering formulas</small>
+        </div>
+        <div class="col-md-3 text-center text-white mb-3">
+            <i class="fas fa-users fa-2x mb-2 text-info"></i>
+            <h6>Professional Grade</h6>
+            <small>Designed for engineers</small>
+        </div>
+    </div>
+
+    <!-- Contact Us Section -->
+    <div class="row py-5 mb-4" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); border-radius: 15px;">
+        <div class="col-lg-8 mx-auto text-center text-white">
+            <h3 class="mb-4">
+                <i class="fas fa-envelope me-2"></i>Need Help or Support?
+            </h3>
+            <p class="lead mb-4">
+                Have questions about ConstructIQ? Need technical support or want to provide feedback? 
+                We're here to help you succeed in your civil engineering projects.
+            </p>
+            <a href="https://www.instagram.com/swaraj.fugare_23" target="_blank" class="btn btn-light btn-lg me-3">
+                <i class="fab fa-instagram me-2"></i>DM us on Instagram
+            </a>
+            <a href="{{ url_for('about') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-info-circle me-2"></i>Learn More
+            </a>
         </div>
     </div>
 </div>

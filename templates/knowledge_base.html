@@ -1,0 +1,138 @@
+
+{% extends "base.html" %}
+
+{% block title %}Knowledge Base - CivilBot{% endblock %}
+
+{% block content %}
+<div class="container mt-4" data-page="knowledge-base">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h3><i class="fas fa-book"></i> Civil Engineering Knowledge Base</h3>
+                    <p class="mb-0">Learn from IS codes, standards, and best practices</p>
+                </div>
+                <div class="card-body">
+                    <form id="knowledgeForm">
+                        <div class="mb-3">
+                            <label class="form-label">Ask about Civil Engineering Topics</label>
+                            <input type="text" id="knowledgeQuery" class="form-control" 
+                                   placeholder="e.g., IS 456 concrete design, foundation types, steel grades..."
+                                   required>
+                        </div>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-search"></i> Search Knowledge Base
+                        </button>
+                    </form>
+                    
+                    <div id="knowledgeResult" class="mt-4" style="display: none;">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-lightbulb"></i> Knowledge Base Response</h5>
+                            </div>
+                            <div class="card-body" id="knowledgeContent">
+                                <!-- AI response will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-graduation-cap"></i> Quick Topics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('IS 456 concrete design basics')">
+                            IS 456 - Concrete Design
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('IS 800 steel structure design')">
+                            IS 800 - Steel Structures
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('IS 1893 seismic design')">
+                            IS 1893 - Seismic Design
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('foundation types and selection')">
+                            Foundation Types
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('concrete mix design M20 M25')">
+                            Concrete Mix Design
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('construction safety standards')">
+                            Safety Standards
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('beam design procedure')">
+                            Beam Design
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="askKnowledge('column design guidelines')">
+                            Column Design
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6><i class="fas fa-info-circle"></i> About Knowledge Base</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">This knowledge base provides information based on:</p>
+                    <ul class="small">
+                        <li>Indian Standard (IS) codes</li>
+                        <li>Construction best practices</li>
+                        <li>Material specifications</li>
+                        <li>Design procedures</li>
+                        <li>Safety guidelines</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function askKnowledge(query) {
+    const queryInput = document.getElementById('knowledgeQuery');
+    const resultDiv = document.getElementById('knowledgeResult');
+    const contentDiv = document.getElementById('knowledgeContent');
+    
+    queryInput.value = query;
+    
+    // Show loading
+    resultDiv.style.display = 'block';
+    contentDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Searching knowledge base...</div>';
+    
+    try {
+        const response = await fetch('/api/knowledge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: query })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            contentDiv.innerHTML = `<div class="knowledge-response">${data.response.replace(/\n/g, '<br>')}</div>`;
+        } else {
+            contentDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+        }
+        
+    } catch (error) {
+        contentDiv.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
+    }
+}
+
+document.getElementById('knowledgeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const query = document.getElementById('knowledgeQuery').value.trim();
+    if (query) {
+        askKnowledge(query);
+    }
+});
+</script>
+{% endblock %}
